@@ -9,6 +9,7 @@ BatChar
 BatComplex
 BatDigest
 BatEnum
+BatEq
 BatFloat
 BatFormat
 BatGc
