@@ -35,6 +35,7 @@ and 'a t =
 
 type 'a enumerable = 'a t
 type 'a mappable = 'a t
+type mapi_key = int
 
 (** {6 Access} *)
 
