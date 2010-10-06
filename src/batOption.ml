@@ -22,6 +22,7 @@
 exception No_value
 
 type 'a t = 'a option
+type 'a mappable = 'a t
 
 let may f = function
 	| None -> ()
