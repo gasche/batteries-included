@@ -26,6 +26,8 @@ type 'a t =
   | Leaf   of 'a array
 
 type 'a enumerable = 'a t
+type 'a mappable = 'a t
+type mapi_key = int
 
 type 'a forest_element = { mutable c : 'a t; mutable len : int }
 
@@ -581,6 +583,10 @@ struct
       Empty
     | Concat of 'a t * int * 'a t * int * int
     | Leaf of 'a RANDOMACCESS.t
+
+  type 'a enumerable = 'a t
+  type 'a mappable = 'a t
+  type mapi_key = int
 
   type 'a forest_element = { mutable c : 'a t; mutable len : int }
 
