@@ -80,10 +80,10 @@ module type S =
        The elements of [s] are presented to [f] in increasing order
        with respect to the ordering over the type of the elements. *)
 
-    val map: (elt -> elt) -> t -> t
-      (** [map f x] creates a new set with elements [f a0],
-	  [f a1]... [f an], where [a0], [a1], ..., [an] are the
-	  values contained in [x]*)
+    include BatInterfaces.MonoMappable
+        with type mappable = t
+         and type map_elem = elt
+    (** [map] *)
 
     val filter: (elt -> bool) -> t -> t
     (** [filter p s] returns the set of all elements in [s]
@@ -204,6 +204,9 @@ module type S =
   module Make (Ord : OrderedType) = 
   struct
     include Set.Make(Ord)
+
+    type mappable = t
+    type map_elem = elt
 
     (*Breaking the abstraction*)
 
