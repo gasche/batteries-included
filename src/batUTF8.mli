@@ -42,6 +42,10 @@ open BatCamomile
     modify it at your own risk.  Call {!validate} to verify that the
     contents are still valid UTF-8.  *)
 type t = private string
+
+include BatInterfaces.MonoMappable
+    with type mappable = t
+     and type map_elem = UChar.t
     
 exception Malformed_code
 
