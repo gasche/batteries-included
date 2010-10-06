@@ -25,6 +25,8 @@ type 'a t =
   | Concat of 'a t * int * 'a t * int * int
   | Leaf   of 'a array
 
+type 'a enumerable = 'a t
+
 type 'a forest_element = { mutable c : 'a t; mutable len : int }
 
 module STRING : sig

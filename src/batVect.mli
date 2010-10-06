@@ -65,6 +65,8 @@ calling [balance] after each modification would defeat the purpose of amortizati
 type 'a t
   (** The type of a polymorphic vect. *)
 
+include BatEnum.Enumerable with type 'a enumerable = 'a t
+
 exception Out_of_bounds
   (** Raised when an operation violates the bounds of the vect. *)
 
