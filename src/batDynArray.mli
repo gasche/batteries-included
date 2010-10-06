@@ -34,7 +34,9 @@
 type 'a t
 
 include BatEnum.Enumerable with type 'a enumerable = 'a t
-include BatInterfaces.Mappable with type 'a mappable = 'a t
+include BatInterfaces.MappableMonoAssoc
+  with type 'a mappable = 'a t
+   and type mapi_key = int
 
 exception Invalid_arg of int * string * string
 (** When an operation on an array fails, [Invalid_arg] is raised. The
