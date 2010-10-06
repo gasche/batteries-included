@@ -23,10 +23,12 @@
 type 'a t = 'a array
 type 'a enumerable = 'a t
 type 'a mappable = 'a t
+type mapi_key = int
 
 open Array
 
 let map = map
+let mapi = mapi
 
 let fold_lefti f x a =
   let r = ref x in
