@@ -23,18 +23,104 @@
 *)
 
 
-(** A signature for data structures which have a
-    [map : ('a -> 'b) -> ('a t -> 'b t)] operation.
+(**
+   Signatures for mappable data structure
 
-    If you create a new data structure, you should make it compatible
-    with [Mappable].
-*)
+   The core idea of the *Mappable* signatures is to provide
+   a standardized interface for the following functions :
+   
+     map : ('a -> 'b) -> ('a t -> 'b t)
+     mapi : (key -> 'a -> 'b) -> ('a t -> 'b t)
+
+   Map applies a given function to every element of a data structure,
+   and mapi applies a given function to every element of an
+   associative data structure : for each association (i,a) in the
+   structure, produce the new association (i, f i a).
+
+   Examples : Array has map and mapi ('a array are considered as
+   associations from int to 'a).
+
+   Not all map function look like ('a -> 'b) -> ('a t -> 'b t).
+   For example, String.map : (char -> char) -> string -> string
+   does not make use of a parametric type : it's a *monomorphic*
+   map function.
+
+   There are actually three orthogonal aspects :
+   1. is the data structure associative : does¹ it have a mapi function ?
+        yes : 'a array, 'a Map.S.t, ('a, 'b) PMap.t
+        no : 'a list, 'a DllList.t
+   2. is the element type polymorphic ?
+        yes : 'a array, 'a list
+        no : string, Set.S.t
+   3. is the *index* type (for an associative structure) polymorphic ?
+        yes : ('a, 'b) PMap.t, ('a, 'b) Hashtbl.t
+        no : 'a array, 'a Map.S.t
+   
+   There are five corresponding interfaces :
+   - Mappable : non-associative, polymorphic map (List.map)
+   - MonoMappable : non-associative, monomorphic map (Buffer.map ?)
+   - MappableAssoc : associative, polymorphic map, polymorphic key/index
+       PMap.map : ('b -> 'c) -> ('a, 'b) t -> ('a, 'c) t
+       PMap.mapi : ('a -> 'b -> 'c) -> ('a, 'b) t -> ('a, 'c) t
+   - MappableMonoAssoc : associative, polymorphic, monomorphic key
+       Array.mapi : (int -> 'a -> 'b) -> 'a array -> 'b array
+   - MonoMappableMonoAssoc : associative, monomorphic, monomorphic keys
+       String.mapi ? : (int -> char -> char) -> string -> string
+
+  *)
+
 module type Mappable = sig
   type 'a mappable (** The data structure, e.g. ['a List.t] *)
 
   val map : ('a -> 'b) -> ('a mappable -> 'b mappable)
     (** [map f e] applies [f] to every element of [e] and returns the corresponding data structure *)
 end
+(** A signature for data structures which have a
+    [map : ('a -> 'b) -> ('a t -> 'b t)] operation.
+*)
+
+module type MonoMappable = sig
+  type map_elem
+  type mappable
+        
+  val map : (map_elem -> map_elem) -> mappable -> mappable
+  (** [map f e] applies [f] to every element of [e] and returns the corresponding data structure *)
+end
+(**
+   A signature for monomorphic mappable data structures (constant [elem] type).
+ *)
+
+module type MappableAssoc = sig
+  type ('a, 'b) mappable
+
+  val map : ('b -> 'c) -> ('a, 'b) mappable -> ('a, 'c) mappable
+  val mapi : ('a -> 'b -> 'c) -> ('a, 'b) mappable -> ('a, 'c) mappable
+end
+(** 
+  A signature for associative data structures featuring a [mapi] operation :
+    [mapi : ('a -> 'b -> 'c) -> ('a, 'b) t -> ('a, 'c) t]
+*)
+
+module type MappableMonoAssoc = sig
+  include Mappable
+  type mapi_key
+  val mapi : (mapi_key -> 'a -> 'b) -> 'a mappable -> 'b mappable
+end
+(**
+  A signature for associative data structure of monomorphic [key] type:
+   [mapi : (key -> 'a -> 'b) -> 'a t -> 'b t]
+*)
+
+module type MonoMappableMonoAssoc = sig
+  include MonoMappable
+  type mapi_key
+  val mapi : (mapi_key -> map_elem -> map_elem) -> mappable -> mappable
+end
+(**
+  A signature for associative data structure of both constant [key] and [elem] type:
+   [mapi : (key -> elem -> elem) -> t -> t]
+*)
+
 
 module type OrderedType =
 sig
