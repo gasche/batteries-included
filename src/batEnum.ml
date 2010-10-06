@@ -30,6 +30,7 @@ type 'a t = {
 
 type 'a enumerable = 'a t
 type 'a mappable = 'a t
+type mapi_key = int
 
 external enum : 'a t -> 'a t = "%identity"
 external of_enum : 'a t -> 'a t = "%identity"
