@@ -26,6 +26,8 @@ exception Empty_list
 type 'a t = 'a list ref
 
 type 'a enumerable = 'a t
+type 'a mappable = 'a t
+
 let empty () = ref []
 
 let is_empty x =
