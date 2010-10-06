@@ -57,6 +57,13 @@ module type S =
     type t
     (** The type of sets. *)
 
+    (* MonoMappable is not enforced here 
+       due to an "illegal permutation of structure fields" error;
+       it is however enforced in the implementation batSet.ml
+     *)
+    type mappable = t
+    type map_elem = elt
+
     val empty: t
     (** The empty set. *)
 
