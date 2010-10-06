@@ -172,6 +172,15 @@ val map : ('a -> 'b -> 'c) -> ('a,'b) t -> ('a,'c) t
       keys as [x], but with the function [f] applied to
       all the values *)
 
+module MappableAssoc : BatInterfaces.MappableAssoc
+    with type ('a, 'b) mappable = ('a, 'b) t
+(** Due to compatibility issues, the Hashtbl [map] function does not
+    conform to the uniform map/mapi convention.
+
+    This little module provides a uniformized interface with separated
+    [map] and [mapi] functions.
+ *)
+
 val filter: ('a -> bool) -> ('key, 'a) t -> ('key, 'a) t
   (**[filter f m] returns a new hashtable where only the values [a] of [m]
      such that [f a = true] remain.*)
@@ -395,6 +404,18 @@ module type S =
 	'a t -> init:'b -> 'b
     end
 
+
+    (** Uniform associative map interface
+
+        Due to compatibility issues, the Hashtbl [map] function does not
+        conform to the uniform map/mapi convention.
+
+        This little module provides a uniformized interface with separated
+        [map] and [mapi] functions.     
+     *)
+    module MappableMonoAssoc : BatInterfaces.MappableMonoAssoc
+        with type 'a mappable = 'a t
+         and type mapi_key = key
   end
 (** The output signature of the functor {!Hashtbl.Make}. *)
     
