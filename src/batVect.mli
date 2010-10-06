@@ -65,7 +65,11 @@ calling [balance] after each modification would defeat the purpose of amortizati
 type 'a t
   (** The type of a polymorphic vect. *)
 
-include BatEnum.Enumerable with type 'a enumerable = 'a t
+include BatEnum.Enumerable
+  with type 'a enumerable = 'a t
+include BatInterfaces.MappableMonoAssoc
+  with type 'a mappable = 'a t
+   and type mapi_key = int
 
 exception Out_of_bounds
   (** Raised when an operation violates the bounds of the vect. *)
@@ -354,6 +358,12 @@ module Make :
 sig
   type 'a t
   (** The type of a polymorphic vect. *)
+
+  include BatEnum.Enumerable
+    with type 'a enumerable = 'a t
+  include BatInterfaces.MappableMonoAssoc
+    with type 'a mappable = 'a t
+     and type mapi_key = int
 
   exception Out_of_bounds
   (** Raised when an operation violates the bounds of the vect. *)
