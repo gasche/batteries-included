@@ -32,6 +32,7 @@
 *)
 
 type 'a t = 'a option
+include BatInterfaces.Mappable with type 'a mappable = 'a t
 
 val may : ('a -> unit) -> 'a option -> unit
 (** [may f (Some x)] calls [f x] and [may f None] does nothing. *)
