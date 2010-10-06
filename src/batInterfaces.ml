@@ -23,6 +23,32 @@ module type Mappable = sig
   val map : ('a -> 'b) -> ('a mappable -> 'b mappable)
 end
 
+module type MonoMappable = sig
+  type map_elem
+  type mappable
+        
+  val map : (map_elem -> map_elem) -> mappable -> mappable
+end
+
+module type MappableAssoc = sig
+  type ('a, 'b) mappable
+
+  val map : ('b -> 'c) -> ('a, 'b) mappable -> ('a, 'c) mappable
+  val mapi : ('a -> 'b -> 'c) -> ('a, 'b) mappable -> ('a, 'c) mappable
+end
+
+module type MappableMonoAssoc = sig
+  include Mappable
+  type mapi_key
+  val mapi : (mapi_key -> 'a -> 'b) -> 'a mappable -> 'b mappable
+end
+
+module type MonoMappableMonoAssoc = sig
+  include MonoMappable
+  type mapi_key
+  val mapi : (mapi_key -> map_elem -> map_elem) -> mappable -> mappable
+end
+
 module type OrderedType =
 sig
   type t
