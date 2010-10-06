@@ -33,6 +33,7 @@ type 'a mut_list =  {
 type 'a t = 'a list
 type 'a enumerable = 'a t
 type 'a mappable = 'a t
+type mapi_key = int
 
 external inj : 'a mut_list -> 'a list = "%identity"
 
