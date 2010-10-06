@@ -80,6 +80,20 @@ open BatCamomile
 type t
   (** The type of the ropes. *)
  
+module CharMonoMappable :
+  BatInterfaces.MonoMappable
+    with type map_elem = UChar.t
+     and type mappable = t
+
+module BulkMonoMappable :
+  BatInterfaces.MonoMappable
+    with type map_elem = BatUTF8.t
+     and type mappable = t
+
+include BatInterfaces.MonoMappable
+  with type map_elem = UChar.t
+  and type mappable = t
+
 exception Out_of_bounds
   (** Raised when an operation violates the bounds of the rope. *)
   
