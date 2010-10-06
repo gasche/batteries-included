@@ -27,6 +27,9 @@ let int_max (x:int) (y:int) = if x < y then y else x
 
 open String
 
+type mappable = string
+type map_elem = char
+
 let compare = String.compare
 
 let init len f =
