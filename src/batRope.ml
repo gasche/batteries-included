@@ -661,6 +661,19 @@ let to_float r = float_of_string (UTF8.to_string_unsafe (to_ustring r))
 let bulk_map f r = bulk_fold (fun acc s -> append_us acc (f s)) Empty r
 let map f r = bulk_map (fun s -> UTF8.map f s) r
 
+module BulkMonoMappable = struct
+  type map_elem = BatUTF8.t
+  type mappable = t
+  let map = bulk_map
+end
+
+module CharMonoMappable = struct
+  type map_elem = UChar.t
+  type mappable = t
+  let map = map
+end
+include CharMonoMappable
+
 let bulk_filter_map f r = bulk_fold (fun acc s -> match f s with None -> acc | Some r -> append_us acc r) Empty r
 let filter_map f r = bulk_map (UTF8.filter_map f) r
 
