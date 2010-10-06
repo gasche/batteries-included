@@ -35,6 +35,9 @@ type 'a t (**The type of an empty ref list*)
 
 include BatEnum.Enumerable
   with type 'a enumerable = 'a t
+include BatInterfaces.Mappable
+  with type 'a mappable = 'a t
+
 val empty : unit -> 'a t
 (** Returns a new empty ref list *)
   
