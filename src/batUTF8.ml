@@ -34,6 +34,10 @@ let string_splice s1 off len s2 =
   open BatCamomile
 
   include UTF8
+
+  type mappable = t
+  type map_elem = UChar.t
+
   module Case = CaseMap.Make(UTF8)
 
   external of_string_unsafe : string -> t = "%identity"
