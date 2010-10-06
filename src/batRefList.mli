@@ -33,6 +33,8 @@ exception Empty_list
 
 type 'a t (**The type of an empty ref list*)
 
+include BatEnum.Enumerable
+  with type 'a enumerable = 'a t
 val empty : unit -> 'a t
 (** Returns a new empty ref list *)
   
