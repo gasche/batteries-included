@@ -30,7 +30,7 @@
       
     type (+'a) t
       (** The type of maps from type [key] to type ['a]. *)
-      
+
     val empty: 'a t
       (** The empty map. *)
       
@@ -71,16 +71,10 @@
 	  Only current bindings are presented to [f]:
 	  bindings hidden by more recent bindings are not passed to [f]. *)
       
-    val map: ('a -> 'b) -> 'a t -> 'b t
-      (** [map f m] returns a map with same domain as [m], where the
-	  associated value [a] of all bindings of [m] has been
-	  replaced by the result of the application of [f] to [a].
-	  The bindings are passed to [f] in increasing order
-	  with respect to the ordering over the type of the keys. *)
-      
-    val mapi: (key -> 'a -> 'b) -> 'a t -> 'b t
-      (** Same as {!Map.S.map}, but the function receives as arguments both the
-	  key and the associated value for each binding of the map. *)
+    include BatInterfaces.MappableMonoAssoc
+        with type 'a mappable = 'a t
+         and type mapi_key = key
+      (** [map] and [mapi] *)
 
     val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
       (** [fold f m a] computes [(f kN dN ... (f k1 d1 a)...)],
@@ -181,6 +175,10 @@
   module Make(Ord : OrderedType) =
     struct
       include Map.Make(Ord)
+
+      type 'a mappable = 'a t
+      type 'a mappable_assoc = 'a t
+      type mapi_key = key
 
 	(*We break the abstraction so as to be able to create enumerations
 	  lazily*)
@@ -379,6 +377,8 @@ type ('k, 'v) t =
     cmp : 'k -> 'k -> int;
     map : ('k, 'v) map;
   }
+
+type ('a, 'b) mappable = ('a, 'b) t
 
 let height = function
   | Node (_, _, _, _, h) -> h
