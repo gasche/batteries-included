@@ -54,3 +54,9 @@ sig
   type t
   val compare : t -> t -> int
 end
+
+let reindex f =
+  let count = ref (-1) in
+  fun x ->
+    incr count;
+    f !count x
