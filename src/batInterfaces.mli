@@ -134,3 +134,22 @@ sig
         Example: a suitable ordering function is the generic structural
         comparison function {!Pervasives.compare}. *)
 end
+
+
+val reindex : (int -> 'a -> 'b) -> ('a -> 'b)
+(** Reindex an int-indexed [(int -> 'a -> 'b)] function into an ['a ->
+   'b] function. At the [n]th call of the reindexed function, it is
+   given the int parameter [n].
+
+   [# List.iter (reindex (Printf.printf "%d : %s\n")) ["a"; "b"; "c"];;]
+   {v
+   0 : a
+   1 : b
+   2 : c
+    -: unit = ()
+   v}
+
+   This is used inside Batteries to derive a [mapi] function from the
+   corresponding [map] function : [List.mapi f] is equivalent to
+   [List.map (reindex f)].
+*)
