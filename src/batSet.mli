@@ -57,13 +57,6 @@ module type S =
     type t
     (** The type of sets. *)
 
-    (* MonoMappable is not enforced here 
-       due to an "illegal permutation of structure fields" error;
-       it is however enforced in the implementation batSet.ml
-     *)
-    type mappable = t
-    type map_elem = elt
-
     val empty: t
     (** The empty set. *)
 
@@ -118,9 +111,18 @@ module type S =
 	  [f a1]... [f aN], where [a0],[a1]..[aN] are the
 	  values contained in [x]*)
 
+    val mapi: (int -> elt -> elt) -> t -> t
+    (** [mapi f x] creates a new set with elements [f 0 a0], [f
+        1 a1]... [f N aN], where [a0], [a1], ..., [aN] are the values
+        contained in [x].
+        
+        The function [f] is called in increasing key order, and the
+        order on the set elements is consistent with
+        the !BatSet.S.enum function. *)
+
     val filter: (elt -> bool) -> t -> t
     (** [filter p s] returns the set of all elements in [s]
-       that satisfy predicate [p]. *)
+        that satisfy predicate [p]. *)
 
     val filter_map: (elt -> elt option) -> t -> t
       (** [filter_map f m] combines the features of [filter] and
@@ -234,11 +236,22 @@ module type S =
       val for_all : f:(elt -> bool) -> t -> bool
       val exists : f:(elt -> bool) -> t -> bool
       val map: f:(elt -> elt) -> t -> t
+      val mapi: f:(int -> elt -> elt) -> t -> t
       val filter : f:(elt -> bool) -> t -> t
       val filter_map: f:(elt -> elt option) -> t -> t
       val partition : f:(elt -> bool) -> t -> t * t
     end
       
+
+    (** {6 Interfaces} *)
+
+    (* MonoMappableMonoAssoc is not enforced here 
+       due to an "illegal permutation of structure fields" error;
+       it is however enforced in the implementation batSet.ml
+     *)
+    type mappable = t
+    type map_elem = elt
+    type mapi_key = int
   end
 (** Output signature of the functor {!Set.Make}. *)
 
@@ -304,8 +317,12 @@ module Make (Ord : OrderedType) : S with type elt = Ord.t
 type 'a t
   (** The type of sets. *)
 
-include BatEnum.Enumerable with type 'a enumerable = 'a t
-include BatInterfaces.Mappable with type 'a mappable = 'a t
+include BatEnum.Enumerable
+with type 'a enumerable = 'a t
+
+include BatInterfaces.MappableMonoAssoc
+with type 'a mappable = 'a t
+and type mapi_key = int
 
 val empty: 'a t
   (** The empty set, using [compare] as comparison function *)
@@ -341,9 +358,14 @@ val map: ('a -> 'b) -> 'a t -> 'b t
       [f a1]... [f aN], where [a0], [a1], ..., [aN] are the
       values contained in [x]*)
 
+val map: ('a -> 'b) -> 'a t -> 'b t
+  (** [map f x] creates a new set with elements [f a0],
+      [f a1]... [f aN], where [a0], [a1], ..., [aN] are the
+      values contained in [x]*)
+
 val filter: ('a -> bool) -> 'a t -> 'a t
-  (** [filter p s] returns the set of all elements in [s]
-      that satisfy predicate [p]. *)
+(** [filter p s] returns the set of all elements in [s]
+    that satisfy predicate [p]. *)
   
 val filter_map: ('a -> 'b option) -> 'a t -> 'b t
   (** [filter_map f m] combines the features of [filter] and

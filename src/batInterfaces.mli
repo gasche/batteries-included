@@ -138,8 +138,8 @@ end
 
 val reindex : (int -> 'a -> 'b) -> ('a -> 'b)
 (** Reindex an int-indexed [(int -> 'a -> 'b)] function into an ['a ->
-   'b] function. At the [n]th call of the reindexed function, it is
-   given the int parameter [n].
+    'b] function. At the [n]-th call (starting from 0) of the
+    reindexed function, it is given the int parameter [n].
 
    [# List.iter (reindex (Printf.printf "%d : %s\n")) ["a"; "b"; "c"];;]
    {v

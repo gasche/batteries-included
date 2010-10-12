@@ -23,12 +23,15 @@ type ('a,'b) t = 'a * 'b
 
 type 'a enumerable = 'a * 'a
 type 'a mappable = 'a * 'a
+type mapi_key = int
 
 let map f (x,y) =
   (* force left-to-right evaluation order (this principle of least
      surprise is already applied in stdlib's List.map) *)
   let a = f x in
   (a, f y)
+
+let mapi f = map (BatInterfaces.reindex f)
 
 let compare ?(c1=Pervasives.compare) ?(c2=Pervasives.compare) (a,b) (c,d) = 
   let comp = c1 a c in 

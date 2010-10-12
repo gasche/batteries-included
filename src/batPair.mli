@@ -43,6 +43,11 @@ val print : ('o BatIO.output -> 'a -> unit) -> ('o BatIO.output -> 'b -> unit) -
 val print2 : ('o BatIO.output -> 'a -> unit) -> 'o BatIO.output -> ('a * 'a) -> unit
 
 
-include BatEnum.Enumerable with type 'a enumerable = 'a * 'a
-include BatInterfaces.Mappable with type 'a mappable = 'a * 'a
+(** {6 Interfaces} *)
 
+include BatEnum.Enumerable
+with type 'a enumerable = 'a * 'a
+
+include BatInterfaces.MappableMonoAssoc
+with type 'a mappable = 'a * 'a
+and type mapi_key = int

@@ -37,6 +37,7 @@ let string_splice s1 off len s2 =
 
   type mappable = t
   type map_elem = UChar.t
+  type mapi_key = int
 
   module Case = CaseMap.Make(UTF8)
 
@@ -254,6 +255,8 @@ let string_splice s1 off len s2 =
     let b = Buf.create (length us) in
     iter (fun c -> Buf.add_char b (f c)) us;
     Buf.contents b
+
+  let mapi f = map (BatInterfaces.reindex f)
 
   let filter_map f us = 
     let b = Buf.create (length us) in

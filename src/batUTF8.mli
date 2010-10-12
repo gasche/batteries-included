@@ -43,10 +43,11 @@ open BatCamomile
     contents are still valid UTF-8.  *)
 type t = private string
 
-include BatInterfaces.MonoMappable
-    with type mappable = t
-     and type map_elem = UChar.t
-    
+include BatInterfaces.MonoMappableMonoAssoc
+with type mappable = t
+and type map_elem = UChar.t
+and type mapi_key = int    
+
 exception Malformed_code
 
 val validate : string -> unit
@@ -215,6 +216,11 @@ val init : int -> (int -> UChar.t) -> t
 
 val map : (UChar.t -> UChar.t) -> t -> t
 (** As [String.map] *)
+
+val mapi : (int -> UChar.t -> UChar.t) -> t -> t
+(** As [String.mapi], but indexed by the UChar indexing ([i] for the
+    [i]-th unicode character starting from 0) rather than the byte
+    indexing. *)
 
 val filter_map : (UChar.t -> UChar.t option) -> t -> t
 (** As [String.filter_map] *)

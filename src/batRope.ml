@@ -664,13 +664,17 @@ let map f r = bulk_map (fun s -> UTF8.map f s) r
 module BulkMonoMappable = struct
   type map_elem = BatUTF8.t
   type mappable = t
+  type mapi_key = int
   let map = bulk_map
+  let mapi f = map (BatInterfaces.reindex f)
 end
 
 module CharMonoMappable = struct
   type map_elem = UChar.t
   type mappable = t
+  type mapi_key = int
   let map = map
+  let mapi f = map (BatInterfaces.reindex f)
 end
 include CharMonoMappable
 

@@ -51,9 +51,6 @@
 open Stream
 
 
-include BatEnum.Enumerable with type 'a enumerable = 'a t
-include BatInterfaces.Mappable with type 'a mappable = 'a t
-
 (** {6 Conversion functions} *)
 
 val enum : 'a t -> 'a BatEnum.t
@@ -259,3 +256,12 @@ val merge : f:(bool -> 'a -> bool) -> 'a t * 'a t -> 'a t
 val switch : f:('a -> bool) -> 'a t -> 'a t * 'a t
 
 end
+
+
+(** {6 Interfaces} *)
+include BatEnum.Enumerable
+with type 'a enumerable = 'a t
+
+include BatInterfaces.MappableMonoAssoc
+with type 'a mappable = 'a t
+and type mapi_key = int

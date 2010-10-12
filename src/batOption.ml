@@ -22,7 +22,10 @@
 exception No_value
 
 type 'a t = 'a option
+
+type 'a enumerable = 'a t
 type 'a mappable = 'a t
+type mapi_key = int
 
 let may f = function
 	| None -> ()
@@ -31,6 +34,8 @@ let may f = function
 let map f = function
 	| None -> None
 	| Some v -> Some (f v)
+
+let mapi f = map (BatInterfaces.reindex f)
 
 let bind f = function
   | None -> None

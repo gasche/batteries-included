@@ -42,8 +42,6 @@ and 'a node =
   | Nil
   | Cons of 'a * 'a t
 
-include BatInterfaces.Mappable with type 'a mappable = 'a t
-
 val enum : 'a t -> 'a BatEnum.t
   (** [enum s] returns the enumeration of all element of [s].
 
@@ -260,3 +258,9 @@ module Exceptionless : sig
   val min : 'a t -> 'a option
   val combine : 'a t -> 'b t -> ('a * 'b) t option
 end
+
+
+(** {6 Interfaces} *)
+include BatInterfaces.MappableMonoAssoc
+with type 'a mappable = 'a t
+and type mapi_key = int

@@ -80,10 +80,10 @@ module type S =
        The elements of [s] are presented to [f] in increasing order
        with respect to the ordering over the type of the elements. *)
 
-    include BatInterfaces.MonoMappable
-        with type mappable = t
-         and type map_elem = elt
-    (** [map] *)
+    include BatInterfaces.MonoMappableMonoAssoc
+    with type mappable = t
+    and type map_elem = elt
+    and type mapi_key = int 
 
     val filter: (elt -> bool) -> t -> t
     (** [filter p s] returns the set of all elements in [s]
@@ -193,6 +193,7 @@ module type S =
       val for_all : f:(elt -> bool) -> t -> bool
       val exists : f:(elt -> bool) -> t -> bool
       val map: f:(elt -> elt) -> t -> t
+      val mapi: f:(int -> elt -> elt) -> t -> t
       val filter : f:(elt -> bool) -> t -> t
       val filter_map: f:(elt -> elt option) -> t -> t
       val partition : f:(elt -> bool) -> t -> t * t
@@ -207,6 +208,7 @@ module type S =
 
     type mappable = t
     type map_elem = elt
+    type mapi_key = int
 
     (*Breaking the abstraction*)
 
@@ -278,6 +280,8 @@ module type S =
       BatEnum.fold (fun acc elem -> add elem acc) empty e
 
     let map f e = fold (fun x acc -> add (f x) acc) e empty
+
+    let mapi f = map (BatInterfaces.reindex f)
 	
     let filter f e = fold (fun x acc -> if f x then add x acc else acc) e empty
 
@@ -301,6 +305,7 @@ module type S =
       let for_all ~f t    = for_all f t
       let exists ~f t     = exists f t
       let map    ~f t     = map f t
+      let mapi   ~f t     = mapi f t
       let filter ~f t     = filter f t
       let filter_map ~f t = filter_map f t
       let partition ~f t  = partition f t
@@ -342,6 +347,7 @@ type 'a t = ('a, unit) BatMap.t
 
 type 'a enumerable = 'a t
 type 'a mappable = 'a t
+type mapi_key = int
 
 let empty    = BatMap.empty
 
@@ -364,6 +370,8 @@ let iter f   = BatMap.iter (for_map f)
 let fold f   = BatMap.foldi (for_map f)
 
 let map f e  = BatMap.foldi (fun k _ acc -> add (f k) acc) e empty
+
+let mapi f   = map (BatInterfaces.reindex f)
 
 let filter f = BatMap.filteri (for_map f)
 

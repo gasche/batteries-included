@@ -29,6 +29,7 @@ open String
 
 type mappable = string
 type map_elem = char
+type mapi_key = int
 
 let compare = String.compare
 
@@ -259,6 +260,14 @@ let map f s =
 	let sc = create len in
 	for i = 0 to len - 1 do
 		unsafe_set sc i (f (unsafe_get s i))
+	done;
+	sc
+
+let mapi f s =
+	let len = length s in
+	let sc = create len in
+	for i = 0 to len - 1 do
+		unsafe_set sc i (f i (unsafe_get s i))
 	done;
 	sc
 
