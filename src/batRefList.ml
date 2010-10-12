@@ -27,6 +27,7 @@ type 'a t = 'a list ref
 
 type 'a enumerable = 'a t
 type 'a mappable = 'a t
+type mapi_key = int
 
 let empty () = ref []
 
@@ -51,6 +52,7 @@ let tl rl = try ref (List.tl !rl) with _ -> raise Empty_list
 let iter f rl = List.iter f !rl
 let for_all f rl = List.for_all f !rl
 let map f rl = ref (List.map f !rl)
+let mapi f = map (BatInterfaces.reindex f)
 let transform f rl = rl := List.map f !rl
 let map_list f rl = List.map f !rl
 let find f rl = List.find f !rl

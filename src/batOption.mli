@@ -32,7 +32,6 @@
 *)
 
 type 'a t = 'a option
-include BatInterfaces.Mappable with type 'a mappable = 'a t
 
 val may : ('a -> unit) -> 'a option -> unit
 (** [may f (Some x)] calls [f x] and [may f None] does nothing. *)
@@ -122,3 +121,12 @@ module Labels : sig
   val map : f:('a -> 'b) -> 'a option -> 'b option
   val map_default : f:('a -> 'b) -> 'b -> 'a option -> 'b
 end
+
+(** {6 Interfaces} *)
+
+include BatEnum.Enumerable
+with type 'a enumerable = 'a t
+
+include BatInterfaces.MappableMonoAssoc
+with type 'a mappable = 'a t
+and type mapi_key = int

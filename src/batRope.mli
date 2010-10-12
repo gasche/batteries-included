@@ -66,7 +66,7 @@ amortized bounds by explicitly rebalancing ropes to be reused using [balance].
 Special care must be taken to avoid calling [balance] too frequently; in the limit,
 calling [balance] after each modification would defeat the purpose of amortization.
  
-
+*
 {8 Limitations}
 
 The length of ropes is limited to approximately 700 Mb on 32-bit 
@@ -81,18 +81,21 @@ type t
   (** The type of the ropes. *)
  
 module CharMonoMappable :
-  BatInterfaces.MonoMappable
-    with type map_elem = UChar.t
-     and type mappable = t
-
-module BulkMonoMappable :
-  BatInterfaces.MonoMappable
-    with type map_elem = BatUTF8.t
-     and type mappable = t
-
-include BatInterfaces.MonoMappable
+  BatInterfaces.MonoMappableMonoAssoc
   with type map_elem = UChar.t
   and type mappable = t
+  and type mapi_key = int
+
+module BulkMonoMappable :
+  BatInterfaces.MonoMappableMonoAssoc
+  with type map_elem = BatUTF8.t
+  and type mappable = t
+  and type mapi_key = int
+
+include BatInterfaces.MonoMappableMonoAssoc
+with type map_elem = UChar.t
+and type mappable = t
+and type mapi_key = int
 
 exception Out_of_bounds
   (** Raised when an operation violates the bounds of the rope. *)

@@ -24,6 +24,7 @@ type 'a node =
 and 'a t = unit -> 'a node
 
 type 'a mappable = 'a t
+type mapi_key = int
 
 let nil () = Nil
 let cons e s () = Cons(e, s)
@@ -136,6 +137,8 @@ let rec iter f s = match s () with
 let rec map f s () = match s () with
   | Nil -> Nil
   | Cons(x, s) -> Cons(f x, map f s)
+
+let mapi f = map (BatInterfaces.reindex f)
 
 let rec fold_left f acc s = match s () with
   | Nil -> acc

@@ -39,9 +39,6 @@ type 'a t = 'a node_t (*For uniformity*)
    The type of a non-empty doubly-linked list.
 *)
 
-include BatInterfaces.Mappable with type 'a mappable = 'a t
-include BatEnum.Enumerable with type 'a enumerable = 'a t
-
 exception Empty
 
 (** {6 node functions } *)
@@ -221,3 +218,13 @@ val of_enum : 'a BatEnum.t -> 'a node_t
 (** {7 Printing}*)
 
 val print : ?first:string -> ?last:string -> ?sep:string ->('a BatInnerIO.output -> 'b -> unit) ->  'a BatInnerIO.output -> 'b t -> unit
+
+
+(** {6 Interfaces} *)
+
+include BatEnum.Enumerable
+with type 'a enumerable = 'a t
+
+include BatInterfaces.MappableMonoAssoc
+with type 'a mappable = 'a t
+and type mapi_key = int

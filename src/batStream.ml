@@ -25,6 +25,7 @@ open Stream
 
     type 'a enumerable = 'a t
     type 'a mappable = 'a t
+    type mapi_key = int
 
     exception End_of_flow = Failure
       
@@ -258,7 +259,10 @@ open Stream
                   Stream.lcons (fun _ -> f h)
                     (Stream.slazy (fun _ -> map f s)))
              | _ -> Stream.sempty)
+
+    let mapi f = map (BatInterfaces.reindex f)
       
+
     let dup s =
       let rec gen s qa qb =
         Stream.slazy

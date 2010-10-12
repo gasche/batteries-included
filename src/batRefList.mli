@@ -33,11 +33,6 @@ exception Empty_list
 
 type 'a t (**The type of an empty ref list*)
 
-include BatEnum.Enumerable
-  with type 'a enumerable = 'a t
-include BatInterfaces.Mappable
-  with type 'a mappable = 'a t
-
 val empty : unit -> 'a t
 (** Returns a new empty ref list *)
   
@@ -227,3 +222,11 @@ module Index : sig
 	    raise [Invalid_index] if the index is outside [0 ; length-1] *)
 
 end
+
+
+include BatEnum.Enumerable
+with type 'a enumerable = 'a t
+
+include BatInterfaces.MappableMonoAssoc
+with type 'a mappable = 'a t
+and type mapi_key = int

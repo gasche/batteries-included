@@ -33,8 +33,9 @@ type 'a enum_t = {
 
 type 'a t = 'a node_t
 
-type 'a mappable = 'a t
 type 'a enumerable = 'a t
+type 'a mappable = 'a t
+type mapi_key = int
 
 exception Empty
 
@@ -213,6 +214,9 @@ let map f node =
 			end
 	in
 	loop first node.next
+
+let mapi f = map (BatInterfaces.reindex f)
+
 
 let copy node = map (fun x -> x) node
 

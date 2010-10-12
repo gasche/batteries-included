@@ -42,9 +42,10 @@
 
 open String
 
-include BatInterfaces.MonoMappable
-    with type mappable = string
-     and type map_elem = char
+include BatInterfaces.MonoMappableMonoAssoc
+with type mappable = string
+and type map_elem = char
+and type mapi_key = int
 
 val is_empty : string -> bool
 (** [is_empty s] returns [true] if [s] is the empty string, [false]
