@@ -43,7 +43,7 @@ module type S =
     type (+'a) t
     (** The type of maps from type [key] to type ['a]. *)
 
-    (* MappableMonoAssoc is not enforced here 
+    (* Mappable1 is not enforced here 
        due to an "illegal permutation of structure fields" error;
        it is however enforced in the implementation batMap.ml
      *)
@@ -303,7 +303,7 @@ module Make (Ord : BatInterfaces.OrderedType) : S with type key = Ord.t
 
 type ('a, 'b) t
 
-include BatInterfaces.MappableAssoc
+include BatInterfaces.Mappable2
   with type ('a, 'b) mappable = ('a, 'b) t
 
 val empty : ('a, 'b) t

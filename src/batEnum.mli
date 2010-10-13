@@ -78,7 +78,7 @@ module type Enumerable = sig
 end
 
 include Enumerable with type 'a enumerable = 'a t
-include BatInterfaces.MappableMonoAssoc
+include BatInterfaces.Mappable1
   with type 'a mappable = 'a t
    and type mapi_key = int
 

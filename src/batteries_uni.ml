@@ -143,11 +143,10 @@ module Interfaces = struct
      to avoid code duplication, we cannot write
        module Interfaces = BatInterfaces
      instead, we have to explictely export interfaces here. *)
+  module type Mappable0 = BatInterfaces.Mappable0
+  module type Mappable1 = BatInterfaces.Mappable1
+  module type Mappable2 = BatInterfaces.Mappable
   module type Mappable = BatInterfaces.Mappable
-  module type MonoMappable = BatInterfaces.MonoMappable
-  module type MappableAssoc = BatInterfaces.MappableAssoc
-  module type MappableMonoAssoc = BatInterfaces.MappableMonoAssoc
-  module type MonoMappableMonoAssoc = BatInterfaces.MonoMappableMonoAssoc
  
   module type OrderedType = BatInterfaces.OrderedType
 end

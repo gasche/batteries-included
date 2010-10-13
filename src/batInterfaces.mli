@@ -27,100 +27,72 @@
    Signatures for mappable data structure
 
    The core idea of the *Mappable* signatures is to provide
-   a standardized interface for the following functions :
-   
-     map : ('a -> 'b) -> ('a t -> 'b t)
-     mapi : (key -> 'a -> 'b) -> ('a t -> 'b t)
+   a standardized interface for the following functions :<ul>
+   <li>[map : ('a -> 'b) -> ('a t -> 'b t)]</li>
+   <li>[mapi : (mapi_key -> 'a -> 'b) -> ('a t -> 'b t)]</li></ul>
+   where [mapi_key] is a type defined by the interface (see below).
 
-   Map applies a given function to every element of a data structure,
-   and mapi applies a given function to every element of an
-   associative data structure : for each association (i,a) in the
-   structure, produce the new association (i, f i a).
+   [map] and [mapi] apply a given function to every element of a data
+   structure :<ul>
+   <li>if [a0,a1..aN] are the elements of [e], [map f e] returns the
+   structure formed from [f a0], [f a1], ..., [f aN].</li>
+   <li> if [a0,a1..aN] are respectively indexed by [k0,k1..kN], [mapi
+   f e] returns the structure formed from [f k0 a0], [f k1 a1], ...,
+   [f kN aN].</li></ul>
 
-   Examples : Array has map and mapi ('a array are considered as
-   associations from int to 'a).
+   For non-associative data structures, the default indexing choice is
+   to use integers starting from 0, in increasing order: [type
+   mapi_key = int]. For example, !BatList.mapi will pass integer [k]
+   along with the element at position [k] in the list.
 
-   Not all map function look like ('a -> 'b) -> ('a t -> 'b t).
-   For example, String.map : (char -> char) -> string -> string
-   does not make use of a parametric type : it's a *monomorphic*
-   map function.
+   Not all map function are parametric like [('a -> 'b) -> ('a t -> 'b
+   t)].  For example, String.map : [(char -> char) -> string ->
+   string] is a monomorphic function over a non-parametric type.
 
-   There are actually three orthogonal aspects :
-   1. is the data structure associative : does¹ it have a mapi function ?
-        yes : 'a array, 'a Map.S.t, ('a, 'b) PMap.t
-        no : 'a list, 'a DllList.t
-   2. is the element type polymorphic ?
-        yes : 'a array, 'a list
-        no : string, Set.S.t
-   3. is the *index* type (for an associative structure) polymorphic ?
-        yes : ('a, 'b) PMap.t, ('a, 'b) Hashtbl.t
-        no : 'a array, 'a Map.S.t
-   
-   There are five corresponding interfaces :
-   - Mappable : non-associative, polymorphic map (List.map)
-   - MonoMappable : non-associative, monomorphic map (Buffer.map ?)
-   - MappableAssoc : associative, polymorphic map, polymorphic key/index
-       PMap.map : ('b -> 'c) -> ('a, 'b) t -> ('a, 'c) t
-       PMap.mapi : ('a -> 'b -> 'c) -> ('a, 'b) t -> ('a, 'c) t
-   - MappableMonoAssoc : associative, polymorphic, monomorphic key
-       Array.mapi : (int -> 'a -> 'b) -> 'a array -> 'b array
-   - MonoMappableMonoAssoc : associative, monomorphic, monomorphic keys
-       String.mapi ? : (int -> char -> char) -> string -> string
+   There are actually three different interfaces, corresponding to the
+   different levels of parametrization :<ul>
+   <li>!BatInterfaces.Mappable0 : map on monomorphic [t] data structures
+   [Map.S.mapi : (key -> 'a -> 'b) -> 'a t -> 'b t]</li>
+   <li>!BatInterfaces.Mappable1 : map on ['a t] 1-parametric data structures
+   [String.map : (char -> char) -> string -> string] </li>
+   <li>!BatInterfaces.Mappable2 : map on [('a, 'b) t] 2-parametric data
+   structures, with key type ['a] 
+   [PMap.mapi : ('a -> 'b -> 'c) -> ('a, 'b) t -> ('a, 'c) t]</li>
+   </ul>
 
-  *)
-
-module type Mappable = sig
-  type 'a mappable (** The data structure, e.g. ['a List.t] *)
-
-  val map : ('a -> 'b) -> ('a mappable -> 'b mappable)
-    (** [map f e] applies [f] to every element of [e] and returns the corresponding data structure *)
-end
-(** A signature for data structures which have a
-    [map : ('a -> 'b) -> ('a t -> 'b t)] operation.
+   Note that the [mapi_key] type on which mapi indexes is parametric
+   for [Mappable2] but constant for [Mappable0] and [Mappable1]. In
+   that case, it is generally [int], but other types are possible,
+   such as [key] in the !BatMap.S example.
 *)
 
-module type MonoMappable = sig
-  type map_elem
+module type Mappable0 = sig
   type mappable
-        
+  type map_elem
+  type mapi_key
+
   val map : (map_elem -> map_elem) -> mappable -> mappable
-  (** [map f e] applies [f] to every element of [e] and returns the corresponding data structure *)
-end
-(**
-   A signature for monomorphic mappable data structures (constant [elem] type).
- *)
-
-module type MappableAssoc = sig
-  type ('a, 'b) mappable
-
-  val map : ('b -> 'c) -> ('a, 'b) mappable -> ('a, 'c) mappable
-  val mapi : ('a -> 'b -> 'c) -> ('a, 'b) mappable -> ('a, 'c) mappable
-end
-(** 
-  A signature for associative data structures featuring a [mapi] operation :
-    [mapi : ('a -> 'b -> 'c) -> ('a, 'b) t -> ('a, 'c) t]
-*)
-
-module type MappableMonoAssoc = sig
-  include Mappable
-  type mapi_key
-  val mapi : (mapi_key -> 'a -> 'b) -> 'a mappable -> 'b mappable
-end
-(**
-  A signature for associative data structure of monomorphic [key] type:
-   [mapi : (key -> 'a -> 'b) -> 'a t -> 'b t]
-*)
-
-module type MonoMappableMonoAssoc = sig
-  include MonoMappable
-  type mapi_key
   val mapi : (mapi_key -> map_elem -> map_elem) -> mappable -> mappable
 end
-(**
-  A signature for associative data structure of both constant [key] and [elem] type:
-   [mapi : (key -> elem -> elem) -> t -> t]
-*)
 
+module type Mappable1 = sig
+  type 'a mappable
+  type mapi_key
+
+  val map : ('a -> 'b) -> 'a mappable -> 'b mappable
+  val mapi : (mapi_key -> 'a -> 'b) -> 'a mappable -> 'b mappable
+end
+
+module type Mappable2 = sig
+  type ('a, 'b) mappable
+  
+  val map : ('a -> 'b) -> ('c, 'a) mappable -> ('c, 'b) mappable
+  val mapi : ('a -> 'b -> 'c) -> ('a, 'b) mappable -> ('a, 'c) mappable
+end
+
+module type Mappable = Mappable1
+(** We use [Mappable] as default name for [Mappable1], as it is the
+    most natural/common mappable signature. *)
 
 module type OrderedType =
 sig

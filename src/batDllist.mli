@@ -225,6 +225,6 @@ val print : ?first:string -> ?last:string -> ?sep:string ->('a BatInnerIO.output
 include BatEnum.Enumerable
 with type 'a enumerable = 'a t
 
-include BatInterfaces.MappableMonoAssoc
+include BatInterfaces.Mappable1
 with type 'a mappable = 'a t
 and type mapi_key = int

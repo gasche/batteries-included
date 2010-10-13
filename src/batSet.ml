@@ -80,7 +80,7 @@ module type S =
        The elements of [s] are presented to [f] in increasing order
        with respect to the ordering over the type of the elements. *)
 
-    include BatInterfaces.MonoMappableMonoAssoc
+    include BatInterfaces.Mappable0
     with type mappable = t
     and type map_elem = elt
     and type mapi_key = int 

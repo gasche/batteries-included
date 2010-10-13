@@ -56,7 +56,7 @@
   type 'a t = 'a array (** The type of arrays.  *)
 
   include BatEnum.Enumerable with type 'a enumerable = 'a t
-  include BatInterfaces.MappableMonoAssoc
+  include BatInterfaces.Mappable1
     with type 'a mappable = 'a t
      and type mapi_key = int
 

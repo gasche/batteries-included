@@ -43,7 +43,7 @@ open BatCamomile
     contents are still valid UTF-8.  *)
 type t = private string
 
-include BatInterfaces.MonoMappableMonoAssoc
+include BatInterfaces.Mappable0
 with type mappable = t
 and type map_elem = UChar.t
 and type mapi_key = int    

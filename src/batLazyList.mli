@@ -71,7 +71,7 @@ and 'a node_t = | Nil | Cons of 'a * 'a t
 (**The type of an item in the list.*)
 
 include BatEnum.Enumerable with type 'a enumerable = 'a t
-include BatInterfaces.MappableMonoAssoc
+include BatInterfaces.Mappable1
   with type 'a mappable = 'a t
    and type mapi_key = int
 

@@ -53,7 +53,7 @@ BatDynArray
 BatFile
 BatGlobal
 BatInnerWeaktbl
-BatInterfaces
+BatInterfacesUtils
 BatLazyList
 BatLogger
 BatMonad

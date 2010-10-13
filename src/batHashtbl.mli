@@ -172,7 +172,7 @@ val map : ('a -> 'b -> 'c) -> ('a,'b) t -> ('a,'c) t
       keys as [x], but with the function [f] applied to
       all the values *)
 
-module MappableAssoc : BatInterfaces.MappableAssoc
+module Mappable2 : BatInterfaces.Mappable2
     with type ('a, 'b) mappable = ('a, 'b) t
 (** Due to compatibility issues, the Hashtbl [map] function does not
     conform to the uniform map/mapi convention.
@@ -413,7 +413,7 @@ module type S =
         This little module provides a uniformized interface with separated
         [map] and [mapi] functions.     
      *)
-    module MappableMonoAssoc : BatInterfaces.MappableMonoAssoc
+    module Mappable1 : BatInterfaces.Mappable1
         with type 'a mappable = 'a t
          and type mapi_key = key
   end
