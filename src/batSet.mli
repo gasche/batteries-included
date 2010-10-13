@@ -245,7 +245,7 @@ module type S =
 
     (** {6 Interfaces} *)
 
-    (* MonoMappableMonoAssoc is not enforced here 
+    (* Mappable0 is not enforced here 
        due to an "illegal permutation of structure fields" error;
        it is however enforced in the implementation batSet.ml
      *)
@@ -320,7 +320,7 @@ type 'a t
 include BatEnum.Enumerable
 with type 'a enumerable = 'a t
 
-include BatInterfaces.MappableMonoAssoc
+include BatInterfaces.Mappable1
 with type 'a mappable = 'a t
 and type mapi_key = int
 

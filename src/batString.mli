@@ -42,7 +42,7 @@
 
 open String
 
-include BatInterfaces.MonoMappableMonoAssoc
+include BatInterfaces.Mappable0
 with type mappable = string
 and type map_elem = char
 and type mapi_key = int

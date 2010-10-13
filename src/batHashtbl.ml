@@ -291,7 +291,7 @@
 	  'a t -> init:'b -> 'b
       end
 
-      module MappableMonoAssoc : BatInterfaces.MappableMonoAssoc
+      module Mappable1 : BatInterfaces.Mappable1
         with type 'a mappable = 'a t
         and type mapi_key = key
     end
@@ -442,7 +442,7 @@
         let (<--) h (k,v) = add h k v
       end
 
-      module MappableMonoAssoc = struct
+      module Mappable1 = struct
         type 'a mappable = 'a t
         type mapi_key = key
         let mapi = map
@@ -507,7 +507,7 @@
       end
     end
 
-module MappableAssoc = struct
+module Mappable2 = struct
   type ('a, 'b) mappable = ('a, 'b) t
   let mapi f = map f
   let map f = mapi (fun _i a -> f a)

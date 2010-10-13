@@ -71,7 +71,7 @@
 	  Only current bindings are presented to [f]:
 	  bindings hidden by more recent bindings are not passed to [f]. *)
       
-    include BatInterfaces.MappableMonoAssoc
+    include BatInterfaces.Mappable1
         with type 'a mappable = 'a t
          and type mapi_key = key
       (** [map] and [mapi] *)

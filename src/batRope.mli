@@ -81,18 +81,18 @@ type t
   (** The type of the ropes. *)
  
 module CharMonoMappable :
-  BatInterfaces.MonoMappableMonoAssoc
+  BatInterfaces.Mappable0
   with type map_elem = UChar.t
   and type mappable = t
   and type mapi_key = int
 
 module BulkMonoMappable :
-  BatInterfaces.MonoMappableMonoAssoc
+  BatInterfaces.Mappable0
   with type map_elem = BatUTF8.t
   and type mappable = t
   and type mapi_key = int
 
-include BatInterfaces.MonoMappableMonoAssoc
+include BatInterfaces.Mappable0
 with type map_elem = UChar.t
 and type mappable = t
 and type mapi_key = int

@@ -259,6 +259,6 @@ end
 
 
 (** {6 Interfaces} *)
-include BatInterfaces.MappableMonoAssoc
+include BatInterfaces.Mappable1
 with type 'a mappable = 'a t
 and type mapi_key = int
