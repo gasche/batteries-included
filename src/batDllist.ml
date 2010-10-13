@@ -215,7 +215,7 @@ let map f node =
 	in
 	loop first node.next
 
-let mapi f = map (BatInterfaces.reindex f)
+let mapi f = map (BatInterfacesUtils.reindex f)
 
 
 let copy node = map (fun x -> x) node

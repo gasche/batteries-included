@@ -281,7 +281,7 @@ module type S =
 
     let map f e = fold (fun x acc -> add (f x) acc) e empty
 
-    let mapi f = map (BatInterfaces.reindex f)
+    let mapi f = map (BatInterfacesUtils.reindex f)
 	
     let filter f e = fold (fun x acc -> if f x then add x acc else acc) e empty
 
@@ -371,7 +371,7 @@ let fold f   = BatMap.foldi (for_map f)
 
 let map f e  = BatMap.foldi (fun k _ acc -> add (f k) acc) e empty
 
-let mapi f   = map (BatInterfaces.reindex f)
+let mapi f   = map (BatInterfacesUtils.reindex f)
 
 let filter f = BatMap.filteri (for_map f)
 

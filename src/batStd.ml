@@ -244,3 +244,4 @@ let exe =
 
 let argv = Sys.argv
 
+let reindex = BatInterfacesUtils.reindex

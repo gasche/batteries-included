@@ -260,7 +260,7 @@ open Stream
                     (Stream.slazy (fun _ -> map f s)))
              | _ -> Stream.sempty)
 
-    let mapi f = map (BatInterfaces.reindex f)
+    let mapi f = map (BatInterfacesUtils.reindex f)
       
 
     let dup s =
