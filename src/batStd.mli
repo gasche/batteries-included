@@ -76,6 +76,25 @@ val finally : (unit -> unit) -> ('a -> 'b) -> 'a -> 'b
   (** [finally fend f x] calls [f x] and then [fend()] even if [f x] raised
       an exception. *)
 
+val reindex : (int -> 'a -> 'b) -> ('a -> 'b)
+(** Reindex an int-indexed [(int -> 'a -> 'b)] function into an ['a ->
+   'b] function. At the [n]th call of the reindexed function, it is
+   given the int parameter [n].
+
+   [# List.iter (reindex (Printf.printf "%d : %s\n")) ["a"; "b"; "c"];;]
+   {v
+   0 : a
+   1 : b
+   2 : c
+    -: unit = ()
+   v}
+
+   This is used inside Batteries to derive a [mapi] function from the
+   corresponding [map] function : [List.mapi f] is equivalent to
+   [List.map (reindex f)].
+*)
+
+
 val args : unit -> string BatEnum.t
   (** An enumeration of the arguments passed to this program through the command line.
 

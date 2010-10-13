@@ -666,7 +666,7 @@ module BulkMonoMappable = struct
   type mappable = t
   type mapi_key = int
   let map = bulk_map
-  let mapi f = map (BatInterfaces.reindex f)
+  let mapi f = map (BatInterfacesUtils.reindex f)
 end
 
 module CharMonoMappable = struct
@@ -674,7 +674,7 @@ module CharMonoMappable = struct
   type mappable = t
   type mapi_key = int
   let map = map
-  let mapi f = map (BatInterfaces.reindex f)
+  let mapi f = map (BatInterfacesUtils.reindex f)
 end
 include CharMonoMappable
 

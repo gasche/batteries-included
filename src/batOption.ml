@@ -35,7 +35,7 @@ let map f = function
 	| None -> None
 	| Some v -> Some (f v)
 
-let mapi f = map (BatInterfaces.reindex f)
+let mapi f = map (BatInterfacesUtils.reindex f)
 
 let bind f = function
   | None -> None

@@ -133,12 +133,24 @@ module Concurrent = BatConcurrent
 
 
 (* Batteries Specific *)
-module Interfaces = BatInterfaces
 module Number = BatNumber
 module Float = BatFloat
 module Int = BatInt
 module Bool = BatBool
 module Unit = BatUnit
+module Interfaces = struct
+  (* as BatInterfaces is only defined through a .mli,
+     to avoid code duplication, we cannot write
+       module Interfaces = BatInterfaces
+     instead, we have to explictely export interfaces here. *)
+  module type Mappable = BatInterfaces.Mappable
+  module type MonoMappable = BatInterfaces.MonoMappable
+  module type MappableAssoc = BatInterfaces.MappableAssoc
+  module type MappableMonoAssoc = BatInterfaces.MappableMonoAssoc
+  module type MonoMappableMonoAssoc = BatInterfaces.MonoMappableMonoAssoc
+ 
+  module type OrderedType = BatInterfaces.OrderedType
+end
 
 (* Chamomile *)
 module UChar = struct include BatCamomile.UChar include BatUChar end

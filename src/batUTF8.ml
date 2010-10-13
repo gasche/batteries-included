@@ -256,7 +256,7 @@ let string_splice s1 off len s2 =
     iter (fun c -> Buf.add_char b (f c)) us;
     Buf.contents b
 
-  let mapi f = map (BatInterfaces.reindex f)
+  let mapi f = map (BatInterfacesUtils.reindex f)
 
   let filter_map f us = 
     let b = Buf.create (length us) in

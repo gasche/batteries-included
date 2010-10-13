@@ -138,7 +138,7 @@ let rec map f s () = match s () with
   | Nil -> Nil
   | Cons(x, s) -> Cons(f x, map f s)
 
-let mapi f = map (BatInterfaces.reindex f)
+let mapi f = map (BatInterfacesUtils.reindex f)
 
 let rec fold_left f acc s = match s () with
   | Nil -> acc

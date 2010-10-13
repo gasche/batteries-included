@@ -31,7 +31,7 @@ let map f (x,y) =
   let a = f x in
   (a, f y)
 
-let mapi f = map (BatInterfaces.reindex f)
+let mapi f = map (BatInterfacesUtils.reindex f)
 
 let compare ?(c1=Pervasives.compare) ?(c2=Pervasives.compare) (a,b) (c,d) = 
   let comp = c1 a c in 
