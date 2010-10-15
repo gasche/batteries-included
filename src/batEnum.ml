@@ -993,6 +993,26 @@ module Labels = struct
   end
 end
 
+module type Enumerable0 = sig
+  type enumerable
+  type enum_elem
+  val enum : 'a enumerable -> 'a t
+  val of_enum : 'a t -> 'a enumerable
+end
+
+module type Enumerable1 = sig
+  type 'a enumerable
+  val enum : 'a enumerable -> 'a t
+  val of_enum : 'a t -> 'a enumerable
+end
+
+module type Enumerable1' = sig
+  type 'a enumerable
+  type enum_key
+  val enum : 'a enumerable -> 'a t
+  val of_enum : 'a t -> 'a enumerable
+end
+
 module type Enumerable = sig
   type 'a enumerable
   val enum : 'a enumerable -> 'a t
