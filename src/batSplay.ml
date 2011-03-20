@@ -341,8 +341,19 @@ struct
 
   let cardinal m = fold (fun _k _v -> succ) m 0
 
-  let split _ =
-    failwith "split not yet implemented in batSplay"
+  let split k m =
+    (* this implementation of 'split' is quite naive, with two
+       traversals of the map to collect the left and right trees.
+       A better implementaion, making use of the Splay properties and
+       using 'csplay', should be devised. *)
+    let center =
+      try Some (find k m)
+      with Not_found -> None
+    in
+    let left = filteri (fun k' _v -> Ord.compare k k' > 0) m in
+    let right = filteri (fun k' _v -> Ord.compare k k' < 0) m in
+    (left, center, right)
+
   let merge _ =
     failwith "merge not yet implemented in batSplay"
 end
