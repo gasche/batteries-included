@@ -175,7 +175,7 @@ struct
     visit acc tr
 
   let choose (Map tr) = match tr with
-    | Empty -> invalid_arg "choose"
+    | Empty -> raise Not_found
     | Node (_, kv, _) -> kv
 
   let min_binding (Map tr) =
