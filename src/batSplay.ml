@@ -53,34 +53,36 @@ let rec top' cx t = match cx with
 
 let top (C (cx, t)) = top' cx t
 
-let rec csplay' cx l x r = match cx with
+let rec csplay' cx l r = match cx with
   | [] ->
-      Node (l, x, r)
+      (l, r)
   | [Left (p, pr)] ->
-      Node (l, x, Node (r, p, pr))
+      (l, Node (r, p, pr))
   | [Right (pl, px)] ->
-      Node (Node (pl, px, l), x, r)
+      (Node (pl, px, l), r)
   | (Left (px, pr) :: Left (ppx, ppr) :: cx) ->
       (* zig zig *)
       let r = Node (r, px, Node (pr, ppx, ppr)) in
-      csplay' cx l x r
+      csplay' cx l r
   | (Left (px, pr) :: Right (ppl, ppx) :: cx) ->
       (* zig zag *)
       let l = Node (ppl, ppx, l) in
       let r = Node (r, px, pr) in
-      csplay' cx l x r
+      csplay' cx l r
   | (Right (pl, px) :: Right (ppl, ppx) :: cx) ->
       (* zig zig *)
       let l = Node (Node (ppl, ppx, pl), px, l) in
-      csplay' cx l x r
+      csplay' cx l r
   | (Right (pl, px) :: Left (ppx, ppr) :: cx) ->
       (* zig zag *)
       let l = Node (pl, px, l) in
       let r = Node (r, ppx, ppr) in
-      csplay' cx l x r
+      csplay' cx l r
 
 let csplay = function
-  | C (cx, Node (l, x, r)) -> csplay' cx l x r
+  | C (cx, Node (l, x, r)) ->
+    let l', r' = csplay' cx l r in
+    Node (l', x, r')
   | _ -> raise Not_found
 
 let rec cfind ?(cx=[]) ~sel = function
@@ -132,12 +134,15 @@ struct
     end
   end
 
+  let rebalance m tr =
+    Obj.set_field (Obj.repr m) 0 (Obj.repr tr)
+
   let find k (Map tr as m) =
     let tr = csplay (cfind ~sel:(ksel k) tr) in
     match tr with
       | Node (_, (_, v), _) ->
-          Obj.set_field (Obj.repr m) 0 (Obj.repr tr) ;
-          v
+        rebalance m tr;
+        v
       | _ -> raise Not_found
 
   let cchange fn (C (cx, t)) = C (cx, fn t)
@@ -346,18 +351,17 @@ struct
 
   let cardinal m = fold (fun _k _v -> succ) m 0
 
-  let split k m =
-    (* this implementation of 'split' is quite naive, with two
-       traversals of the map to collect the left and right trees.
-       A better implementaion, making use of the Splay properties and
-       using 'csplay', should be devised. *)
-    let center =
-      try Some (find k m)
-      with Not_found -> None
-    in
-    let left = filteri (fun k' _v -> Ord.compare k k' > 0) m in
-    let right = filteri (fun k' _v -> Ord.compare k k' < 0) m in
-    (left, center, right)
+  let split k (Map tr as m) =
+    let C (cx, center) = cfind ~sel:(ksel k) tr in
+    match center with
+      | Empty ->
+        let l, r = csplay' cx Empty Empty in
+        (Map l, None, Map r)
+      | Node (l, x, r) ->
+        let l', r' = csplay' cx l r in
+        (* we rebalance as in 'find' *)
+        rebalance m (Node (l', x, r'));
+        (Map l', Some (snd x), Map r')
 
   let merge f m1 m2 =
     (* The implementation is a bit long, but has the important
