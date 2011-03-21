@@ -359,6 +359,71 @@ struct
     let right = filteri (fun k' _v -> Ord.compare k k' < 0) m in
     (left, center, right)
 
-  let merge _ =
-    failwith "merge not yet implemented in batSplay"
+  let merge f m1 m2 =
+    (* The implementation is a bit long, but has the important
+       property of applying `f` in increasing key order. *)
+    (* we will iterate on both enumerations in increasing order simultaneously *)
+    let e1 = enum m1 in
+    let e2 = enum m2 in
+    (* we will push the results in increasing order from left to
+       right; the result will be very unbalanced, but this will be
+       corrected by the rebalancing at the first lookup in the splay
+       tree. *)
+    let maybe_push acc k maybe_v1 maybe_v2 =
+      match f k maybe_v1 maybe_v2 with
+        | None -> acc
+        | Some v -> Node (acc, (k, v), Empty) in
+    let push1 acc (k, v1) = maybe_push acc k (Some v1) None in
+    let push2 acc (k, v2) = maybe_push acc k None (Some v2) in
+    (* we iterate simultaneously on both inputs, in increasing
+       order of keys. There are four different "states" to consider :
+       - we have no idea of the inputs :
+         none_known
+       - we know the next (key, value) pair of e1, and that e2 is empty :
+         only_e1 (k1, v1)
+       - we know the next (key, value) pair of e2, and that e1 is empty :
+         only_e2 (k2, v2)
+       - we know the next (key, value) pair of both e1 and e2 :
+         both_known (k1, v1) (k2, v2)
+    *)
+  let rec none_known acc =
+    match Enum.peek e1, Enum.peek e2 with
+      | None, None -> acc
+      | None, Some kv2 ->
+        Enum.junk e2;
+        only_e2 acc kv2
+      | Some kv1, None ->
+        Enum.junk e1;
+        only_e1 acc kv1
+      | Some kv1, Some kv2 ->
+        Enum.junk e1; Enum.junk e2;
+        both_known acc kv1 kv2
+  and only_e1 acc kv1 =
+    Enum.fold push1 (push1 acc kv1) e1
+  and only_e2 acc kv2 =
+    Enum.fold push2 (push2 acc kv2) e2
+  and both_known acc ((k1, v1) as kv1) ((k2, v2) as kv2) =
+    let cmp = Ord.compare k1 k2 in
+    if cmp < 0 then begin
+      let acc = push1 acc kv1 in
+      match Enum.peek e1 with
+        | None -> only_e2 acc kv2
+        | Some kv1' ->
+          Enum.junk e1;
+          both_known acc kv1' kv2
+    end
+    else if cmp > 0 then begin
+      let acc = push2 acc kv2 in
+      match Enum.peek e2 with
+        | None -> only_e1 acc kv1
+        | Some kv2' ->
+          Enum.junk e2;
+          both_known acc kv1 kv2'
+    end
+    else begin
+      let acc = maybe_push acc k1 (Some v1) (Some v2) in
+      none_known acc
+    end
+  in
+  Map (none_known Empty)
 end
