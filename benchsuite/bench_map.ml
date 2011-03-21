@@ -11,11 +11,6 @@ let (<|) = BatStd.(<|)
 module MapBench (M : sig val input_length : int end) = struct
   let input_length = M.input_length
 
-  let nb_iter =
-    max 10 (total_length / input_length)
-  
-  let () = Printf.printf "%d iterations\n" nb_iter
-
   let random_key () = Random.int input_length
   let random_value () = Random.int input_length
 
@@ -30,12 +25,16 @@ module MapBench (M : sig val input_length : int end) = struct
      is used (PMap use Pervasives.compare by default), in order to
      have comparable performance results. *)
   module StdMap = BatMap.Make(struct type t = int let compare = compare end)
-
+  module Splay = BatSplay.Map(struct type t = int let compare = compare end)
   module PMap = BatPMap
 
-  let same_elts stdmap pmap =
-    BatList.of_enum (StdMap.enum stdmap)
-    = BatList.of_enum (PMap.enum pmap)
+  let same_elts emap1 emap2 =
+    BatList.of_enum emap1 = BatList.of_enum emap2
+
+  let same_elts_st_pm stdmap pmap =
+    same_elts (StdMap.enum stdmap) (PMap.enum pmap)
+  let same_elts_st_sp stdmap splay =
+    same_elts (StdMap.enum stdmap) (Splay.enum splay)
 
   (* A benchmark for key insertion *)
   let create_std_map input =
@@ -48,6 +47,11 @@ module MapBench (M : sig val input_length : int end) = struct
       (fun t (k, v) -> PMap.add k v t)
       PMap.empty input
 
+  let create_splay_map input =
+    List.fold_left
+      (fun t (k, v) -> Splay.add k v t)
+      Splay.empty input
+
   let create_input =
     let keys = random_inputs random_key () in
     let values = random_inputs random_value () in
@@ -55,13 +59,16 @@ module MapBench (M : sig val input_length : int end) = struct
 
   let std_created_map = create_std_map create_input
   let poly_created_map = create_poly_map create_input
+  let splay_created_map = create_splay_map create_input
 
   let () =
-    assert (same_elts std_created_map poly_created_map)
+    assert (same_elts_st_pm std_created_map poly_created_map)
 
-  let samples_create = make_samples create_input
-    [ "stdmap create", ignore -| create_std_map;
-      "pmap create", ignore -| create_poly_map ]
+  let samples_create = make_samples create_input [
+    "stdmap create", ignore -| create_std_map;
+    "pmap create", ignore -| create_poly_map;
+    "splay create", ignore -| create_splay_map;
+  ]
 
   (* A benchmark for fast import *)
   let import_std_map input =
@@ -70,18 +77,25 @@ module MapBench (M : sig val input_length : int end) = struct
   let import_poly_map input =
     PMap.of_enum (BatList.enum input)
 
+  let import_splay_map input =
+    Splay.of_enum (BatList.enum input)
+
   let import_input = create_input
 
   let () =
     let std_imported_map = import_std_map import_input in
-    assert (same_elts std_imported_map poly_created_map);
+    assert (same_elts_st_pm std_imported_map poly_created_map);
     let poly_imported_map = import_poly_map import_input in
-    assert (same_elts std_created_map poly_imported_map);
+    assert (same_elts_st_pm std_created_map poly_imported_map);
+    let splay_imported_map = import_splay_map import_input in
+    assert (same_elts_st_sp std_created_map splay_imported_map);
     ()
 
-  let samples_import = make_samples import_input
-    [ "stdmap import", ignore -| import_std_map;
-      "pmap import", ignore -| import_poly_map ]
+  let samples_import = make_samples import_input [
+    "stdmap import", ignore -| import_std_map;
+    "pmap import", ignore -| import_poly_map;
+    "splay import", ignore -| import_splay_map;
+  ]
 
   (* A benchmark for key lookup *)
   let lookup_input =
@@ -97,9 +111,57 @@ module MapBench (M : sig val input_length : int end) = struct
       (fun k -> ignore (PMap.mem k poly_created_map))
       input
 
-  let samples_lookup = make_samples lookup_input
-    [ "stdmap lookup", lookup_std_map;
-      "pmap lookup", lookup_poly_map ]
+  let lookup_splay_map input =
+    List.iter
+      (fun k -> ignore (Splay.mem k splay_created_map))
+      input
+
+  let samples_lookup = make_samples lookup_input [
+    "stdmap lookup", lookup_std_map;
+    "pmap lookup", lookup_poly_map;
+    "splay lookup", lookup_splay_map;
+  ]
+
+  (* some benchmarks for key lookups with frequent repetitions,
+     to advantage splay rebalancings *)
+  let gauss_biased_input =
+    let binomial2 n =
+      let rec test acc = function
+        | 0 -> acc
+        | n ->
+          let success = if Random.bool () then 0 else 1 in
+          test (acc + success) (n - 1)
+      in test 0 n in
+    let sqrt_input_length =
+      1 + int_of_float (sqrt (float_of_int input_length)) in
+    random_inputs (fun () -> binomial2 sqrt_input_length) ()
+
+  let decay_biased_input =
+    let input = Array.make input_length 0 in
+    let flip p = (Random.int p = 0) in
+    let rec exp_decay p = if flip p then 0 else 1 + exp_decay p in
+    (* the choice of fresh_prob and decay_param are arbitrary; the
+       smaller decay_param, the bigger fresh_prob, the better for splays *)
+    let decay_param = 2 in
+    let fresh_prob = 10 in
+    for i = 0 to input_length - 1 do
+      let d = exp_decay decay_param in
+      input.(i) <-
+        if d > i || flip fresh_prob then random_key ()
+        else input.(i - d)
+    done;
+    Array.to_list input
+
+  let samples_gauss_biased_lookup = make_samples gauss_biased_input [
+    "map gauss-biased lookup", lookup_std_map;
+    "splay gauss-biased lookup", lookup_splay_map;
+  ]
+
+  let samples_decay_biased_lookup = make_samples decay_biased_input [
+    "map decay-biased lookup", lookup_std_map;
+    "splay decay-biased lookup", lookup_splay_map;
+  ]
+
 
   (* A benchmark for key removal *)
   let remove_input =
@@ -115,15 +177,24 @@ module MapBench (M : sig val input_length : int end) = struct
       (fun t k -> PMap.remove k t)
       poly_created_map input
 
+  let remove_splay_map input =
+    List.fold_left
+      (fun t k -> Splay.remove k t)
+      splay_created_map input
+
   let () =
-    assert (same_elts
-              (remove_std_map remove_input)
-              (remove_poly_map remove_input))
+    let std_output = remove_std_map remove_input in
+    assert (same_elts_st_pm std_output
+              (remove_poly_map remove_input));
+    assert (same_elts_st_sp std_output
+              (remove_splay_map remove_input));
+    ()
 
-  let samples_remove = make_samples remove_input
-    [ "stdmap remove", ignore -| remove_std_map;
-      "pmap remove", ignore -| remove_poly_map ]
-
+  let samples_remove = make_samples remove_input [
+    "stdmap remove", ignore -| remove_std_map;
+    "pmap remove", ignore -| remove_poly_map;
+    "splay remove", ignore -| remove_splay_map;
+  ]
 
   (* A benchmark for merging *)
   let random_pairlist () =
@@ -156,17 +227,25 @@ module MapBench (M : sig val input_length : int end) = struct
     (fun () -> PMap.merge merge_fun m1 m2_ineq),
     (fun () -> PMap.merge_unsafe merge_fun m1 m2_equal)
 
+  let merge_splay_map =
+    let m1 = Splay.of_enum (BatList.enum p1) in
+    let m2 = Splay.of_enum (BatList.enum p2) in
+    fun () ->
+      Splay.merge merge_fun m1 m2
+
   let () =
     let test impl_merge =
-      same_elts (merge_std_map ()) (impl_merge ()) in
+      same_elts_st_pm (merge_std_map ()) (impl_merge ()) in
     assert (test merge_poly_map_equal);
     assert (test merge_poly_map_equiv);
     assert (test merge_poly_map_ineq);
     assert (test merge_unsafe_poly_map);
+    assert (same_elts_st_sp (merge_std_map ()) (merge_splay_map ()));
     ()
 
   let samples_merge = make_samples () [
     "stdmap merge", ignore -| merge_std_map;
+    "splay merge", ignore -| merge_splay_map;
     "pmap merge (<>)", ignore -| merge_poly_map_ineq;
     "pmap merge (~~)", ignore -| merge_poly_map_equiv;
     "pmap merge (==)", ignore -| merge_poly_map_equal;
@@ -276,6 +355,8 @@ module MapBench (M : sig val input_length : int end) = struct
     let create = samples_create () in
     let import = samples_import () in
     let lookup = samples_lookup () in
+    let gauss_biased_lookup = samples_gauss_biased_lookup () in
+    let decay_biased_lookup = samples_decay_biased_lookup () in
     let remove = samples_remove () in
     let merge = samples_merge () in
     let union = samples_union () in
@@ -287,6 +368,8 @@ module MapBench (M : sig val input_length : int end) = struct
         create;
         import;
         lookup;
+        gauss_biased_lookup;
+        decay_biased_lookup;
         remove;
         merge;
         union;
