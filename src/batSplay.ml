@@ -333,12 +333,6 @@ struct
     let ( <-- ) m (k, v) = add k v m
   end
 
-  (*TODO : add an implementation for these functions
-
-    The following functions are required to conform to the Map
-    interface since ocaml 3.12. They have not yet been implemented in
-    BatSplay, but that must come soon.
-  *)
   let bindings m = List.of_enum (enum m)
 
   let exist_bool b f m =
