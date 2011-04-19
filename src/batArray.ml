@@ -183,17 +183,10 @@ let filteri_list p xs =
     end
   done;
   let t = Array.make !n' xs.(0) in
-  (* the list was accumulated in reverse; it's important that we build
-     the list by increasing traversal, then the array by decreasing
-     traversal, and not the other way around, to preserve the property
-     that the predicate is called in increasing key order.  *)
-  for i = !n' - 1 downto 0 do
-    match !res with
-      | hd::tl ->
-        t.(i) <- hd;
-        res := tl
-      | _ -> assert false
-  done;
+  let rec fill i = function
+    | [] -> ()
+    | hd::tl -> t.(i) <- hd; fill (i - 1) tl in
+  fill (!n' - 1) !res;
   t
 
 (**T array_filteri_list
@@ -219,23 +212,22 @@ let filteri_dynarray p xs =
 
 (* the arbitrary threshold on the input size I choose to switch from
    list to dynarray *)
-let filteri_list_dynarray_threshold = 1000
+let filteri_list_dynarray_threshold = 5000
 
 let filteri p xs =
   if length xs < filteri_list_dynarray_threshold
   then filteri_list p xs
   else filteri_dynarray p xs
 
-
-(* reuse filteri implementation; this has a slight performance cost
-   (around 4%, see benchsuite/bench_array.ml), but the gain in
-   maintainability is worth it, when other changes may speed up
-   filteri by 50% or more... *)
-let filter p xs = filteri (fun _i x -> p x) xs
-
 (**T array_filteri
    filteri (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
 **)
+
+(* reuse filteri implementation; this has a slight performance cost
+   (around 10%, see benchsuite/bench_array.ml), but the gain in
+   maintainability is worth it, when other changes may speed up
+   filteri by 50% or more... *)
+let filter p xs = filteri (fun _i x -> p x) xs
 
 (**T array_filter
    filter (fun x -> x mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|2;4;0;2|]

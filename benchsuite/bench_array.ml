@@ -222,18 +222,15 @@ let test_filter () = Printf.printf "test use of BatSet over a simple
       end
     done;
     let t = Array.make !n' xs.(0) in
-    for i = !n' - 1 downto 0 do
-      match !res with
-        | hd::tl ->
-          t.(i) <- hd;
-          res := tl
-        | _ -> assert false
-    done;
+    let rec fill i = function
+      | [] -> ()
+      | hd::tl -> t.(i) <- hd; fill (i - 1) tl in
+    fill (!n' - 1) !res;
     t
   in
 
   let filter_hybrid p xs =
-    let list_limit = 1000 in
+    let list_limit = 5000 in
     let n = length xs in
     if n < list_limit
     then filter_list p xs
@@ -271,15 +268,24 @@ let test_filter () = Printf.printf "test use of BatSet over a simple
       [
         (* name "bitset_old", test, filter_bitset_old; *)
         name "bitset", test, filter_bitset;
-        name "new_impl", test, Array.filter;
+        name "current_impl", test, Array.filter;
+        name "hybrid", test, filter_hybrid;
         (* name "array", test, filter_array; *)
         (* name "list", test, filter_list; *)
         (* name "dynarray", test, filter_dynarray; *)
         (* name "dynarray_small", test, filter_dynarray_small; *)
-        (* name "hybrid", test, filter_hybrid; *)
         (* name "count", test, filter_counter; *)
       ]
   in
+
+  (* Remark : current_impl is a bit disadvantaged wrt. hybrid because
+     the actual implementation reuses filteri, which incurs a slight
+     overhead for the function call. With the old bitset impl. it was
+     estimated to 4%, but with the faster impl. its nearly 8/10%. This
+     is because the predicate we test is very fast. On slower
+     predicates the difference is less noticeable, but there are also
+     less performance differences between bitset and hybrid, as the
+     time is spent elsewhere. *)
 
   List.iter (print_newline -| Benchmark.tabulate) [
     samples 100 (9,10);
@@ -293,6 +299,9 @@ let test_filter () = Printf.printf "test use of BatSet over a simple
     samples 1_000_000 (1,20);
     samples 1_000_000 (1,1000);
   ]
+
+
+
 
 (* Test whether it is worth duplicating code between 'filter' and
    'filteri', when each one could reuse the other implementation by
