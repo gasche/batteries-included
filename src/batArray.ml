@@ -152,30 +152,80 @@ let findi p xs =
 
 let find p xs = xs.(findi p xs)
 
-(* Use of BitSet suggested by Brian Hurt. *)
-let filteri p xs =
-  let n = length xs in
-  (* Use a bitset to store which elements will be in the final array. *)
-  let bs = BatBitSet.create n in
-  (* count the number of kept elements, instead of using the costlier
-     BatBitSet.count function (tested 5% to 10% faster) *)
+
+(* optimized filteri function
+
+   The idea of the filter implementation is to accumulate the filtered
+   elements in a temporary structure and count them, then create the
+   output array of the right size and fill it from the temporary
+   structure.
+
+   The choice of the temporary structure to use should depend on the
+   (unknown to us) length of output array. For a small numbers of
+   elements, lists are the better choice. For a big numbers of
+   elements, lists are less efficient than DynArray (arrays with
+   automatic exponential resizing).
+
+   We implement both methods, then provide a hybrid choice that
+   chooses between list and dynarray based on the length of the
+   *input* array. This is not optimal as we could have a big input
+   array with a small output array, but it's still very reasonable.
+*)
+
+let filteri_list p xs =
+  let res = ref [] in
   let n' = ref 0 in
-  for i = 0 to n-1 do
-    if p i xs.(i) then begin
+  for i = 0 to Array.length xs - 1 do
+    let r = xs.(i) in
+    if p i r then begin
       incr n';
-      BatBitSet.set bs i;
+      res := r :: !res
     end
   done;
-  (* Allocate the final array and copy elements into it. *)
-  let j = ref 0 in
-  let xs' = init !n'
-    (fun _ ->
-       (* Find the next set bit in the BitSet. *)
-       while not (BatBitSet.is_set bs !j) do incr j done;
-       let r = xs.(!j) in
-       incr j;
-       r) in
-  xs'
+  let t = Array.make !n' xs.(0) in
+  (* the list was accumulated in reverse; it's important that we build
+     the list by increasing traversal, then the array by decreasing
+     traversal, and not the other way around, to preserve the property
+     that the predicate is called in increasing key order.  *)
+  for i = !n' - 1 downto 0 do
+    match !res with
+      | hd::tl ->
+        t.(i) <- hd;
+        res := tl
+      | _ -> assert false
+  done;
+  t
+
+(**T array_filteri_list
+   filteri_list (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
+**)
+
+let filteri_dynarray p xs =
+  let n = length xs in
+  (* we should n/8 as the initial size of our temporary dynarray, as
+     this is a memory use equivalent to the former bitset
+     implementation. By choosing a relatively big starting size we
+     avoid most resizing that could hurt performances. *)
+  let res = BatDynArray.make (n / 8) in
+  for i = 0 to n-1 do
+    let r = xs.(i) in
+    if p i r then BatDynArray.add res r 
+  done;
+  BatDynArray.to_array res
+
+(**T array_filteri_dynarray
+   filteri_dynarray (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
+**)
+
+(* the arbitrary threshold on the input size I choose to switch from
+   list to dynarray *)
+let filteri_list_dynarray_threshold = 1000
+
+let filteri p xs =
+  if length xs < filteri_list_dynarray_threshold
+  then filteri_list p xs
+  else filteri_dynarray p xs
+
 
 (* reuse filteri implementation; this has a slight performance cost
    (around 4%, see benchsuite/bench_array.ml), but the gain in

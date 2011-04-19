@@ -533,3 +533,13 @@ sig
 (**/**)
 end
 
+
+(**/**)
+(* those functions are inner functions used in filteri implementation,
+   but we made them semi-public to accomodate our testing framework
+   which whishes to access them from outside the module; you MUST not
+   use them, as they may disappear in future versions.
+*)
+val filteri_dynarray : (int -> 'a -> bool) -> 'a array -> 'a array
+val filteri_list : (int -> 'a -> bool) -> 'a array -> 'a array
+(**/**)

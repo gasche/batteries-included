@@ -269,8 +269,9 @@ let test_filter () = Printf.printf "test use of BatSet over a simple
     );
     Benchmark.throughputN ~repeat:1 1
       [
-        name "bitset_old", test, filter_bitset_old;
+        (* name "bitset_old", test, filter_bitset_old; *)
         name "bitset", test, filter_bitset;
+        name "new_impl", test, Array.filter;
         (* name "array", test, filter_array; *)
         (* name "list", test, filter_list; *)
         (* name "dynarray", test, filter_dynarray; *)
