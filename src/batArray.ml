@@ -153,34 +153,12 @@ let findi p xs =
 let find p xs = xs.(findi p xs)
 
 (* Use of BitSet suggested by Brian Hurt. *)
-let filter p xs =
-  let n = length xs in
-  (* count the number of kept elements, instead of using the costlier
-     BatBitSet.count function (tested 5% to 10% faster) *)
-  let n' = ref 0 in
-  (* Use a bitset to store which elements will be in the final array. *)
-  let bs = BatBitSet.create n in
-  for i = 0 to n-1 do
-    if p xs.(i) then begin
-      incr n';
-      BatBitSet.set bs i
-    end
-  done;
-  (* Allocate the final array and copy elements into it. *)
-  let j = ref 0 in
-  let xs' = init !n'
-    (fun _ ->
-       (* Find the next set bit in the BitSet. *)
-       while not (BatBitSet.is_set bs !j) do incr j done;
-       let r = xs.(!j) in
-       incr j;
-       r) in
-  xs'
-
 let filteri p xs =
   let n = length xs in
   (* Use a bitset to store which elements will be in the final array. *)
   let bs = BatBitSet.create n in
+  (* count the number of kept elements, instead of using the costlier
+     BatBitSet.count function (tested 5% to 10% faster) *)
   let n' = ref 0 in
   for i = 0 to n-1 do
     if p i xs.(i) then begin
@@ -199,8 +177,18 @@ let filteri p xs =
        r) in
   xs'
 
+(* reuse filteri implementation; this has a slight performance cost
+   (around 4%, see benchsuite/bench_array.ml), but the gain in
+   maintainability is worth it, when other changes may speed up
+   filteri by 50% or more... *)
+let filter p xs = filteri (fun _i x -> p x) xs
+
 (**T array_filteri
    filteri (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
+**)
+
+(**T array_filter
+   filter (fun x -> x mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|2;4;0;2|]
 **)
 
 let find_all = filter
