@@ -155,15 +155,20 @@ let find p xs = xs.(findi p xs)
 (* Use of BitSet suggested by Brian Hurt. *)
 let filter p xs =
   let n = length xs in
+  (* count the number of kept elements, instead of using the costlier
+     BatBitSet.count function (tested 5% to 10% faster) *)
+  let n' = ref 0 in
   (* Use a bitset to store which elements will be in the final array. *)
   let bs = BatBitSet.create n in
   for i = 0 to n-1 do
-    if p xs.(i) then BatBitSet.set bs i
+    if p xs.(i) then begin
+      incr n';
+      BatBitSet.set bs i
+    end
   done;
   (* Allocate the final array and copy elements into it. *)
-  let n' = BatBitSet.count bs in
   let j = ref 0 in
-  let xs' = init n'
+  let xs' = init !n'
     (fun _ ->
        (* Find the next set bit in the BitSet. *)
        while not (BatBitSet.is_set bs !j) do incr j done;
@@ -176,13 +181,16 @@ let filteri p xs =
   let n = length xs in
   (* Use a bitset to store which elements will be in the final array. *)
   let bs = BatBitSet.create n in
+  let n' = ref 0 in
   for i = 0 to n-1 do
-    if p i xs.(i) then BatBitSet.set bs i
+    if p i xs.(i) then begin
+      incr n';
+      BatBitSet.set bs i;
+    end
   done;
   (* Allocate the final array and copy elements into it. *)
-  let n' = BatBitSet.count bs in
   let j = ref 0 in
-  let xs' = init n'
+  let xs' = init !n'
     (fun _ ->
        (* Find the next set bit in the BitSet. *)
        while not (BatBitSet.is_set bs !j) do incr j done;

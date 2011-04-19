@@ -270,13 +270,13 @@ let test_filter () = Printf.printf "test use of BatSet over a simple
     Benchmark.throughputN ~repeat:1 1
       [
         name "bitset_old", test, filter_bitset_old;
-        (* name "bitset", test, filter_bitset; *)
+        name "bitset", test, filter_bitset;
         (* name "array", test, filter_array; *)
         (* name "list", test, filter_list; *)
         (* name "dynarray", test, filter_dynarray; *)
         (* name "dynarray_small", test, filter_dynarray_small; *)
-        name "hybrid", test, filter_hybrid;
-        name "count", test, filter_counter;
+        (* name "hybrid", test, filter_hybrid; *)
+        (* name "count", test, filter_counter; *)
       ]
   in
 
