@@ -182,7 +182,10 @@ let filteri_list p xs =
       res := r :: !res
     end
   done;
-  let t = Array.make !n' xs.(0) in
+  let t =
+    (* protect against xs empty *)
+    if !n' = 0 then [||] else
+      Array.make !n' xs.(0) in
   let rec fill i = function
     | [] -> ()
     | hd::tl -> t.(i) <- hd; fill (i - 1) tl in
@@ -191,6 +194,9 @@ let filteri_list p xs =
 
 (**T array_filteri_list
    filteri_list (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
+**)
+(**T array_filteri_list_empty
+   filteri_list (fun i x -> true) [||] = [||]
 **)
 
 let filteri_dynarray p xs =
@@ -208,6 +214,9 @@ let filteri_dynarray p xs =
 
 (**T array_filteri_dynarray
    filteri_dynarray (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
+**)
+(**T array_filteri_dynarray_empty
+   filteri_dynarray (fun i x -> true) [||] = [||]
 **)
 
 (* the arbitrary threshold on the input size I choose to switch from
