@@ -172,132 +172,77 @@ let find p xs = xs.(findi p xs)
    array with a small output array, but it's still very reasonable.
 *)
 
-type 'a buffer = {
-  length : unit -> int;
-  add : 'a -> unit;
-  some_elem : unit -> 'a;
-  iteri : (int -> 'a -> unit) -> unit;
-}
+DEFINE FILTER(
+  mBUF,
+  mLEN,
+  mTEST (* p i r *),
+  mADD (* buf buf_len i r *),
+  mRETURN_ARRAY (* buf buf_len *)
+) =
+  fun p xs ->  
+    let buf = mBUF in
+    let buf_len = mLEN in
+    for i = 0 to length xs - 1 do
+      let r = xs.(i) in
+      if mTEST then mADD
+    done;
+    mRETURN_ARRAY
 
-let array_of_buf buf =
-  let n = buf.length () in
-  if n = 0 then [| |]
-  else
-    let t = Array.make n (buf.some_elem ()) in
-    buf.iteri (Array.set t);
-    t
+DEFINE FILTER_MAP(
+  mBUF,
+  mLEN,
+  mTEST (* p i r *),
+  mADD (* buf buf_len i r y *),
+  mRETURN_ARRAY (* buf buf_len *)
+) =
+  fun p xs ->  
+    let buf = mBUF in
+    let buf_len = mLEN in
+    for i = 0 to length xs - 1 do
+      let r = xs.(i) in
+      match mTEST with
+        | None -> ()
+        | Some y -> mADD
+    done;
+    mRETURN_ARRAY
 
-let filteri_buf buf p xs =
-  for i = 0 to length xs - 1 do
-    let r = xs.(i) in
-    if p i r then buf.add r
-  done;
-  array_of_buf buf
-
-let filter_buf buf p xs =
-  for i = 0 to length xs - 1 do
-    let r = xs.(i) in
-    if p r then buf.add r
-  done;
-  array_of_buf buf
-
-let filter_map_buf buf p xs =
-  for i = 0 to length xs - 1 do
-    match p xs.(i) with
-      | None -> ()
-      | Some y -> buf.add y
-  done;
-  array_of_buf buf
-
-let list_buf () =
-  let buf = ref [] in
-  let len = ref 0 in
-  let length () = !len in
-  let add x =
-    buf := x :: !buf
-  in
-  let some_elem () =
-    match !buf with
-      | [] -> raise Not_found
-      | hd::_ -> hd
-  in
-  let iteri f =
+let list_return_array len = function
+  | [] -> [| |]
+  | hd::_ as list ->
+    let t = Array.make len hd in
     let rec iteri i = function
       | [] -> ()
-      | hd::tl -> f i hd; iteri (i - 1) tl in
-    iteri (!len - 1) !buf;
-  in
-  {
-    length = length;
-    add = add;
-    some_elem = some_elem;
-    iteri = iteri;
-  }
-(**T array_list_buf
-   filteri_list (list_buf ())
-     (fun i x -> (i+x) mod 2 = 0)
-     [|1;2;3;4;0;1;2;3|]
-   = [|0;1;2;3|]
-**)
-(**T array_list_buf_empty
-   filteri_list (list_buf ()) (fun i x -> true) [||] = [||]
-**)
-
-let dynarray_buf init_size =
-  let buf = BatDynArray.make init_size in
-  let length () = BatDynArray.length buf in
-  let add x = BatDynArray.add buf x in
-  let some_elem () =
-    if BatDynArray.length buf = 0
-    then raise Not_found
-    else BatDynArray.get buf 0
-  in
-  let iteri f = BatDynArray.iteri f buf in
-  {
-    length = length;
-    add = add;
-    some_elem = some_elem;
-    iteri = iteri;
-  }
-(**T array_dynarray_buf
-   filteri_dynarray
-     (fun i x -> (i+x) mod 2 = 0)
-     [|1;2;3;4;0;1;2;3|]
-   = [|0;1;2;3|]
-**)
-(**T array_dynarray_buf_empty
-   filteri_dynarray (fun i x -> true) [||] = [||]
-**)
+      | hd::tl -> t.(i) <- hd; iteri (i - 1) tl in
+    iteri (len - 1) list;
+    t
 
 (* the arbitrary threshold on the input size I choose to switch from
    list to dynarray *)
 let buflen_list_dynarray_threshold = 5000
 
-let choose_buf xs =
-  if length xs < buflen_list_dynarray_threshold
-  then list_buf ()
-  else
-    (* we choose n/8 as the initial size of our temporary dynarray, as
-       this is a memory use equivalent to the former bitset
-       implementation. By choosing a relatively big starting size we
-       avoid most resizing that could hurt performances. *)
-    dynarray_buf (length xs / 8)
+DEFINE FILTER_HYBRID((* p i r *)mTEST) =
+  fun p xs ->
+    if length xs < buflen_list_dynarray_threshold
+    then FILTER(
+      ref [],
+      ref 0,
+      mTEST,
+      (begin
+        incr buf_len;
+        buf := r :: !buf;
+       end),
+      list_return_array !buf_len !buf
+    ) p xs
+    else FILTER(
+      BatDynArray.make (length xs / 8),
+      (),
+      mTEST,
+      BatDynArray.add buf r,
+      (ignore buf_len; BatDynArray.to_array buf)
+    ) p xs
 
-let filteri p xs =
-  filteri_buf (choose_buf xs) p xs
-
-(* specialized choice for testing *)
-let filteri_list p xs =
-  filteri_buf (list_buf ()) p xs
-let filteri_dynarray p xs =
-  filteri_buf (dynarray_buf (length xs / 8)) p xs
-
-let filter p xs =
-  filter_buf (choose_buf xs) p xs
-;;
-
-let filter_map p xs =
-  filter_map_buf (choose_buf xs) p xs
+let filter = FILTER_HYBRID(p r)
+let filteri = FILTER_HYBRID(p i r)
 
 (**T array_filteri
    filteri (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
@@ -384,8 +329,8 @@ let of_backwards e =
 
 let range xs = BatEnum.(--^) 0 (Array.length xs)
 
-(* let filter_map p xs = *)
-(*   of_enum (BatEnum.filter_map p (enum xs)) *)
+let filter_map p xs =
+  of_enum (BatEnum.filter_map p (enum xs))
 
 
 let iter2 f a1 a2 =
