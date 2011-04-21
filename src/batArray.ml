@@ -172,77 +172,142 @@ let find p xs = xs.(findi p xs)
    array with a small output array, but it's still very reasonable.
 *)
 
-let filteri_list p xs =
-  let res = ref [] in
-  let n' = ref 0 in
-  for i = 0 to Array.length xs - 1 do
+type 'a buffer = {
+  length : unit -> int;
+  add : 'a -> unit;
+  some_elem : unit -> 'a;
+  iteri : (int -> 'a -> unit) -> unit;
+}
+
+let array_of_buf buf =
+  let n = buf.length () in
+  if n = 0 then [| |]
+  else
+    let t = Array.make n (buf.some_elem ()) in
+    buf.iteri (Array.set t);
+    t
+
+let filteri_buf buf p xs =
+  for i = 0 to length xs - 1 do
     let r = xs.(i) in
-    if p i r then begin
-      incr n';
-      res := r :: !res
-    end
+    if p i r then buf.add r
   done;
-  let t =
-    (* protect against xs empty *)
-    if !n' = 0 then [||] else
-      Array.make !n' xs.(0) in
-  let rec fill i = function
-    | [] -> ()
-    | hd::tl -> t.(i) <- hd; fill (i - 1) tl in
-  fill (!n' - 1) !res;
-  t
+  array_of_buf buf
 
-(**T array_filteri_list
-   filteri_list (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
-**)
-(**T array_filteri_list_empty
-   filteri_list (fun i x -> true) [||] = [||]
-**)
-
-let filteri_dynarray p xs =
-  let n = length xs in
-  (* we should n/8 as the initial size of our temporary dynarray, as
-     this is a memory use equivalent to the former bitset
-     implementation. By choosing a relatively big starting size we
-     avoid most resizing that could hurt performances. *)
-  let res = BatDynArray.make (n / 8) in
-  for i = 0 to n-1 do
+let filter_buf buf p xs =
+  for i = 0 to length xs - 1 do
     let r = xs.(i) in
-    if p i r then BatDynArray.add res r 
+    if p r then buf.add r
   done;
-  BatDynArray.to_array res
+  array_of_buf buf
 
-(**T array_filteri_dynarray
-   filteri_dynarray (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
+let filter_map_buf buf p xs =
+  for i = 0 to length xs - 1 do
+    match p xs.(i) with
+      | None -> ()
+      | Some y -> buf.add y
+  done;
+  array_of_buf buf
+
+let list_buf () =
+  let buf = ref [] in
+  let len = ref 0 in
+  let length () = !len in
+  let add x =
+    buf := x :: !buf
+  in
+  let some_elem () =
+    match !buf with
+      | [] -> raise Not_found
+      | hd::_ -> hd
+  in
+  let iteri f =
+    let rec iteri i = function
+      | [] -> ()
+      | hd::tl -> f i hd; iteri (i - 1) tl in
+    iteri (!len - 1) !buf;
+  in
+  {
+    length = length;
+    add = add;
+    some_elem = some_elem;
+    iteri = iteri;
+  }
+(**T array_list_buf
+   filteri_list (list_buf ())
+     (fun i x -> (i+x) mod 2 = 0)
+     [|1;2;3;4;0;1;2;3|]
+   = [|0;1;2;3|]
 **)
-(**T array_filteri_dynarray_empty
+(**T array_list_buf_empty
+   filteri_list (list_buf ()) (fun i x -> true) [||] = [||]
+**)
+
+let dynarray_buf init_size =
+  let buf = BatDynArray.make init_size in
+  let length () = BatDynArray.length buf in
+  let add x = BatDynArray.add buf x in
+  let some_elem () =
+    if BatDynArray.length buf = 0
+    then raise Not_found
+    else BatDynArray.get buf 0
+  in
+  let iteri f = BatDynArray.iteri f buf in
+  {
+    length = length;
+    add = add;
+    some_elem = some_elem;
+    iteri = iteri;
+  }
+(**T array_dynarray_buf
+   filteri_dynarray
+     (fun i x -> (i+x) mod 2 = 0)
+     [|1;2;3;4;0;1;2;3|]
+   = [|0;1;2;3|]
+**)
+(**T array_dynarray_buf_empty
    filteri_dynarray (fun i x -> true) [||] = [||]
 **)
 
 (* the arbitrary threshold on the input size I choose to switch from
    list to dynarray *)
-let filteri_list_dynarray_threshold = 5000
+let buflen_list_dynarray_threshold = 5000
+
+let choose_buf xs =
+  if length xs < buflen_list_dynarray_threshold
+  then list_buf ()
+  else
+    (* we choose n/8 as the initial size of our temporary dynarray, as
+       this is a memory use equivalent to the former bitset
+       implementation. By choosing a relatively big starting size we
+       avoid most resizing that could hurt performances. *)
+    dynarray_buf (length xs / 8)
 
 let filteri p xs =
-  if length xs < filteri_list_dynarray_threshold
-  then filteri_list p xs
-  else filteri_dynarray p xs
+  filteri_buf (choose_buf xs) p xs
+
+(* specialized choice for testing *)
+let filteri_list p xs =
+  filteri_buf (list_buf ()) p xs
+let filteri_dynarray p xs =
+  filteri_buf (dynarray_buf (length xs / 8)) p xs
+
+let filter p xs =
+  filter_buf (choose_buf xs) p xs
+;;
+
+let filter_map p xs =
+  filter_map_buf (choose_buf xs) p xs
 
 (**T array_filteri
    filteri (fun i x -> (i+x) mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|0;1;2;3|]
 **)
-
-(* reuse filteri implementation; this has a slight performance cost
-   (around 10%, see benchsuite/bench_array.ml), but the gain in
-   maintainability is worth it, when other changes may speed up
-   filteri by 50% or more... *)
-let filter p xs = filteri (fun _i x -> p x) xs
-
 (**T array_filter
    filter (fun x -> x mod 2 = 0) [|1;2;3;4;0;1;2;3|] = [|2;4;0;2|]
 **)
 
 let find_all = filter
+
 
 let partition p xs =
   let n = length xs in
@@ -319,8 +384,9 @@ let of_backwards e =
 
 let range xs = BatEnum.(--^) 0 (Array.length xs)
 
-let filter_map p xs =
-  of_enum (BatEnum.filter_map p (enum xs))
+(* let filter_map p xs = *)
+(*   of_enum (BatEnum.filter_map p (enum xs)) *)
+
 
 let iter2 f a1 a2 =
   if Array.length a1 <> Array.length a2

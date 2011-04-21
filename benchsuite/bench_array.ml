@@ -237,6 +237,20 @@ let test_filter () = Printf.printf "test use of BatSet over a simple
     else filter_dynarray p xs
   in
 
+  let filter_of_filter_map filter_map =
+    fun p xs ->
+      filter_map (fun x -> if p x then Some x else None) xs
+  in
+  let filter_map_enum =
+    let filter_map p xs =
+      BatArray.of_enum (Enum.filter_map p (BatArray.enum xs)) in
+    filter_of_filter_map filter_map
+  in
+  let filter_map_impl =
+    filter_of_filter_map BatArray.filter_map
+  in
+    
+
   let nb_iter = 20 in
   let test length (p, q) =
     (* filter 'p' over 'q' elements of an array of length 'length' *)
@@ -262,7 +276,10 @@ let test_filter () = Printf.printf "test use of BatSet over a simple
             filter_list,
             filter_dynarray, filter_dynarray_small,
             filter_hybrid,
-            filter_counter
+            filter_counter,
+            filter_map_impl,
+            filter_map_enum,
+            ()
     );
     Benchmark.throughputN ~repeat:1 1
       [
@@ -270,6 +287,8 @@ let test_filter () = Printf.printf "test use of BatSet over a simple
         name "bitset", test, filter_bitset;
         name "current_impl", test, Array.filter;
         name "hybrid", test, filter_hybrid;
+        (* name "filter_map_enum", test, filter_map_enum; *)
+        (* name "filter_map_impl", test, filter_map_impl; *)
         (* name "array", test, filter_array; *)
         (* name "list", test, filter_list; *)
         (* name "dynarray", test, filter_dynarray; *)
@@ -399,6 +418,7 @@ let test_filteri () =
         "filter_reusing", test_filter, filter_reusing
       ];
   ()
+  
 
 let () =
   test_filter ();

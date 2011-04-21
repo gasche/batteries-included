@@ -152,12 +152,13 @@
 	array [a].  *)
 
   val filter : ('a -> bool) -> 'a array -> 'a array
-    (** [filter p a] returns all the elements of the array [a]
-	that satisfy the predicate [p].  The order of the elements
-	in the input array is preserved.  *)
+  (** [filter p a] returns all the elements of the array [a] that
+      satisfy the predicate [p]. The order of the elements in the
+      input array is preserved, and the predicate [p] is called only
+      once per element, in increasing order.  *)
 
   val filteri : (int -> 'a -> bool) -> 'a array -> 'a array
-    (** As [filter] but with the index passed to the predicate. *)
+  (** As [filter] but with the index passed to the predicate. *)
 
   val filter_map : ('a -> 'b option) -> 'a array -> 'b array
     (** [filter_map f e] returns an array consisting in all elements
