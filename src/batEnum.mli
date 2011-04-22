@@ -415,6 +415,10 @@ val init : int -> (int -> 'a) -> 'a t
 (** [init n f] creates a new enumeration over elements
   [f 0, f 1, ..., f (n-1)] *)
 
+val inf_init : (int -> 'a) -> 'a t
+(** [inf_init n f] create a new infinite enumeration over elements
+    [f 0, f 1, ...] *)
+
 val singleton : 'a -> 'a t
 (** Create an enumeration consisting in exactly one element.*)
 

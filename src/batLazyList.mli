@@ -128,6 +128,10 @@ val init : int -> (int -> 'a) -> 'a t
       containing the results of (f 0),(f 1).... (f (n-1)).
       Raise [Invalid_arg "LazyList.init"] if n < 0.*)
 
+val inf_init : (int -> 'a) -> 'a t
+(** [inf_init n f] create a new infinite enumeration over elements
+    [f 0, f 1, ...] *)
+
 val make : int -> 'a -> 'a t
   (** Similar to [String.make], [make n x] returns a
       list containing [n] elements [x].   *)

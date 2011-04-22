@@ -107,6 +107,10 @@ val init : int -> (int -> 'a) -> 'a t
   (** [init n f] returns the sequence returning the results of [f 0],
       [f 1].... [f (n-1)]. Raise [Invalid_argument] if [n < 0]. *)
 
+val inf_init : (int -> 'a) -> 'a t
+(** [inf_init n f] create a new infinite enumeration over elements
+    [f 0, f 1, ...] *)
+
 (** {6 Iterators} *)
 
 val iter : ('a -> unit) -> 'a t -> unit
