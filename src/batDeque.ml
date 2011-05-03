@@ -38,7 +38,7 @@ let cons x q =
  **)
 
 (**Q cons_qt
-   (Q.list Q.pos_int) ~count:10 (fun l -> List.fold_left (flip cons) empty l |> to_list = List.rev l)
+   (Q.small_list Q.pos_int) ~count:10 (fun l -> List.fold_left (flip cons) empty l |> to_list = List.rev l)
  **)
 
 let snoc q x =
@@ -50,7 +50,7 @@ let snoc q x =
  **)
 
 (**Q snoc_eq_rev
-   (Q.list Q.int) (fun l -> List.fold_left snoc empty l |> to_list = l)
+   (Q.small_list Q.int) (fun l -> List.fold_left snoc empty l |> to_list = l)
  **)
 
 let front q =
@@ -91,7 +91,7 @@ let rev q = { front = q.rear ; flen = q.rlen ;
               rear = q.front ; rlen = q.flen }
 
 (**Q rev
-   (Q.list Q.pos_int) (fun l -> let q = of_list l in rev q |> to_list = List.rev l)
+   (Q.small_list Q.pos_int) (fun l -> let q = of_list l in rev q |> to_list = List.rev l)
  **)
 
 let of_list l = { front = l ; flen = List.length l ;
@@ -230,8 +230,8 @@ let of_enum e =
   BatEnum.fold snoc empty e
 
 (**Q enumerable
-   (Q.list Q.int) (fun l -> List.of_enum (enum (List.fold_left snoc empty l)) = l)
-   (Q.list Q.int) (fun l -> to_list (of_enum (List.enum l)) = l)
+   (Q.small_list Q.int) (fun l -> List.of_enum (enum (List.fold_left snoc empty l)) = l)
+   (Q.small_list Q.small_int) (fun l -> to_list (of_enum (List.enum l)) = l)
 **)
 
 let print ?(first="[") ?(last="]") ?(sep="; ") elepr out dq =
@@ -249,7 +249,7 @@ let print ?(first="[") ?(last="]") ?(sep="; ") elepr out dq =
   BatInnerIO.nwrite out last
 
 (**Q printing
-   (Q.list Q.int) (fun l -> BatIO.to_string (print ~first:"<" ~last:">" ~sep:"," Int.print) (of_list l) = BatIO.to_string (List.print ~first:"<" ~last:">" ~sep:"," Int.print) l)
+   (Q.small_list Q.int) (fun l -> BatIO.to_string (print ~first:"<" ~last:">" ~sep:"," Int.print) (of_list l) = BatIO.to_string (List.print ~first:"<" ~last:">" ~sep:"," Int.print) l)
 **)
 
 let t_printer elepr paren out x = print (elepr false) out x

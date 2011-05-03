@@ -881,7 +881,7 @@ let find x m =
  **)
 
 (**Q map_add_find_q
-   (Q.list Q.small_int) (fun xs -> let of_list xs y m0 = List.fold_left (fun acc x -> add x y acc) m0 xs in of_list (List.filter ((<>) 100) xs) false (singleton 100 true) |> find 100)
+   (Q.small_list Q.int) (fun xs -> let of_list xs y m0 = List.fold_left (fun acc x -> add x y acc) m0 xs in of_list (List.filter ((<>) 100) xs) false (singleton 100 true) |> find 100)
  **)
 
   
@@ -889,7 +889,7 @@ let remove x m =
   { m with map = Concrete.remove x m.cmp m.map }
 
 (**Q map_add_remove_q
-   (Q.list Q.small_int) (fun xs -> let of_list xs y m0 = List.fold_left (fun acc x -> add x y acc) m0 xs in List.fold_left (fun acc x -> remove x acc) (of_list xs true empty) xs |> is_empty)
+   (Q.small_list Q.int) (fun xs -> let of_list xs y m0 = List.fold_left (fun acc x -> add x y acc) m0 xs in List.fold_left (fun acc x -> remove x acc) (of_list xs true empty) xs |> is_empty)
  **)
 
 let mem x m =
@@ -913,13 +913,13 @@ let foldi f m acc =
   Concrete.foldi f m.map acc
 
 (**Q map_fold
-   (Q.list Q.small_int) (fun xs -> let m = List.fold_left (fun acc x -> add x true acc) (create Int.compare) xs in foldi (fun x y acc -> x :: acc) m [] |> List.rev = List.sort_unique Int.compare xs)
+   (Q.small_list Q.small_int) (fun xs -> let m = List.fold_left (fun acc x -> add x true acc) (create Int.compare) xs in foldi (fun x y acc -> x :: acc) m [] |> List.rev = List.sort_unique Int.compare xs)
  **)
 
 let enum t = Concrete.enum t.map
 
 (**Q map_enum_q
-   (Q.list Q.small_int) (fun xs -> List.fold_left (fun acc x -> add x true acc) (create Int.compare) xs |> keys |> List.of_enum = List.sort_unique Int.compare xs)
+   (Q.small_list Q.small_int) (fun xs -> List.fold_left (fun acc x -> add x true acc) (create Int.compare) xs |> keys |> List.of_enum = List.sort_unique Int.compare xs)
  **)
   
 let backwards t = Concrete.backwards t.map

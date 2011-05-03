@@ -56,6 +56,14 @@ let lg_size size gen () =
   foldn ~f:(fun acc _ -> (gen ())::acc) ~init:[] (size ())
 let lg gen () = lg_size nng gen ()
 
+let slg gen () =
+  let size () =
+    let p = Random.float 1. in
+    if p < 0.5 then 0
+    else if p < 0.7 then 1 + Random.int 2
+    else 3 + Random.int 7 in
+  lg_size size gen ()
+
 let ag_size size gen () =
   Array.init (size ()) (fun _ -> gen ())
 let ag gen () = ag_size nng gen ()
@@ -128,6 +136,7 @@ let numeral_string = string_gen numeral
 let numeral_string_of_size size = string_gen_of_size size numeral
 
 let list (gen,pp) = (lg gen, pp_list pp)
+let small_list (gen, pp) = (slg gen, pp_list pp)
 let list_of_size size (gen,pp) = (lg_size gen, pp_list pp)
 
 let array (gen,pp) = (ag gen, pp_array pp)
