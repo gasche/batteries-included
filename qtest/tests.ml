@@ -29,6 +29,28 @@ let tests : OUnit.test list ref = ref []
 
 let register x = tests := x :: !tests
 
-let all_tests () = !tests
+let check name test_fun = fun () ->
+  let time_begin = Unix.time () in
+  test_fun ();
+  let time_end = Unix.time () in
+  if time_end -. time_begin > 0.5 then
+    Printf.eprintf "%s taking more than half a second.\n%!"
+      (match name with
+        | None -> "Anonymous test"
+        | Some name -> "Test '"^name^"'")
+
+let rec check_too_long name = function
+  | OUnit.TestCase test_fun ->
+    OUnit.TestCase (check name test_fun)
+  | OUnit.TestList tests ->
+    OUnit.TestList (List.map (check_too_long name) tests)
+  | OUnit.TestLabel (label, test) ->
+    let name = match name with
+      | None -> Some label
+      | Some name -> Some (name^":"^label) in
+    OUnit.TestLabel (label, check_too_long name test)
+
+let all_tests () =
+  List.map (check_too_long None) !tests
 
 let data_dir = Filename.concat (Sys.getcwd ()) "data"
