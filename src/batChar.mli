@@ -111,6 +111,12 @@ val print: 'a BatInnerIO.output -> Char.t -> unit
 val t_printer : char BatValue_printer.t
 
 
+module Incubator : sig
+  module Comp : BatOrd.Incubator.Comp with type t = char
+  module Ord : BatOrd.Incubator.Ord with type t = char
+  module Eq : BatOrd.Incubator.Eq with type t = char
+end
+
 (**/**)
 
 external unsafe_chr : int -> char = "%identity"

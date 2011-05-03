@@ -551,3 +551,15 @@ For example [group cmp [f;c;b;e;d;a]] can give [[[a;b];[c];[d;e;f]]] if followin
 
 val ( @ ) : 'a list -> 'a list -> 'a list
 (** the new implementation for ( @ ) operator, see [List.append]. *)
+
+module Incubator : sig
+  open BatOrd.Incubator
+  val eq : 'a eq -> 'a list eq
+  val ord : 'a ord -> 'a list ord
+  val comp : 'a comp -> 'a list comp
+
+  module Eq (T : Eq) : Eq with type t = T.t list
+  module Ord (T : Ord) : Ord with type t = T.t list
+  module Comp (T : Comp) : Comp with type t = T.t list
+end
+
