@@ -178,6 +178,20 @@ val tap : ('a -> unit) -> 'a -> 'a
       Apply the function to the given value, and return the original value as the result.  Useful as part of a pipeline of operations.  
   *)
 
+val on : ('b -> 'b -> 'c) -> ('a -> 'b) -> ('a -> 'a -> 'c)
+(** 
+    @since v1.4.0
+    
+    Apply a pre-transformation to the input of a binary
+    function. Useful in particular for comparison operators:
+    
+    {[
+      let compare_by_height = List.sort (on Int.compare height)
+    ]}
+
+    Inspired from Haskell's [Data.Fun.on].
+*)
+
 (**
    {6 Results}
 *)
