@@ -34,7 +34,7 @@ let compare ?(c1=Pervasives.compare) ?(c2=Pervasives.compare) (a,b) (c,d) =
   let comp = c1 a c in 
   if comp <> 0 then comp else c2 b d
 
-let enum (x,y) = BatList.enum [x;y] (* Make efficient? *)
+let enum (x,y) = assert false
 
 let of_enum e = match BatEnum.get e with 
     None -> failwith "Pair.of_enum: not enough elements" 

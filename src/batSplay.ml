@@ -396,8 +396,8 @@ struct
     fun acc (k, v) -> add k v acc
   end empty e
 
-  let to_list m = List.of_enum (enum m)
-  let of_list l = of_enum (List.enum l)
+  let to_list m = assert false
+  let of_list l = assert false
 
   let custom_print ~first ~last ~sep kvpr out m =
     Enum.print ~first ~last ~sep
@@ -437,7 +437,7 @@ struct
     let ( <-- ) m (k, v) = add k v m
   end
 
-  let bindings m = List.of_enum (enum m)
+  let bindings m = assert false
 
   let exist_bool b f m =
     try

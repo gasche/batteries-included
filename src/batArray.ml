@@ -267,8 +267,8 @@ let of_enum e =
        | Some x -> x
        | None -> assert false)
 
-let of_backwards e =
-  of_list (BatList.of_backwards e)
+let of_backwards e = assert false
+  (* of_list (BatList.of_backwards e) *)
 
 let range xs = BatEnum.(--^) 0 (Array.length xs)
 

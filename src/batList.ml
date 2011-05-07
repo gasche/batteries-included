@@ -181,14 +181,14 @@ let rec unique ?(cmp = ( = )) l =
 
 let unique_eq ?eq l = unique ?cmp:eq l
 
-let unique_cmp ?(cmp = Pervasives.compare) l =
-  let set      = ref (BatMap.create cmp) in
-  let should_keep x = 
-    if BatMap.mem x !set then false
-    else ( set := BatMap.add x true !set; true )
-  in
-  (* use a stateful filter to remove duplicate elements *)
-  filter should_keep l
+(* let unique_cmp ?(cmp = Pervasives.compare) l = *)
+(*   let set      = ref (BatMap.create cmp) in *)
+(*   let should_keep x =  *)
+(*     if BatMap.mem x !set then false *)
+(*     else ( set := BatMap.add x true !set; true ) *)
+(*   in *)
+(*   (\* use a stateful filter to remove duplicate elements *\) *)
+(*   filter should_keep l *)
 
 let filter_map f l =
 	let rec loop dst = function
@@ -555,38 +555,38 @@ let rec remove_all l x =
 	loop dummy l;
 	dummy.tl
 
-let enum l =
-	let rec make lr count =
-		BatEnum.make
-			~next:(fun () ->
-				match !lr with
-				| [] -> raise BatEnum.No_more_elements
-				| h :: t ->
-					decr count;
-					lr := t;
-					h
-			)
-			~count:(fun () ->
-				if !count < 0 then count := length !lr;
-				!count
-			)
-			~clone:(fun () ->
-				make (ref !lr) (ref !count)
-			)
-	in
-	make (ref l) (ref (-1))
+(* let enum l = *)
+(* 	let rec make lr count = *)
+(* 		BatEnum.make *)
+(* 			~next:(fun () -> *)
+(* 				match !lr with *)
+(* 				| [] -> raise BatEnum.No_more_elements *)
+(* 				| h :: t -> *)
+(* 					decr count; *)
+(* 					lr := t; *)
+(* 					h *)
+(* 			) *)
+(* 			~count:(fun () -> *)
+(* 				if !count < 0 then count := length !lr; *)
+(* 				!count *)
+(* 			) *)
+(* 			~clone:(fun () -> *)
+(* 				make (ref !lr) (ref !count) *)
+(* 			) *)
+(* 	in *)
+(* 	make (ref l) (ref (-1)) *)
 
-let of_enum e =
-	let h = dummy_node() in
-	let _ = BatEnum.fold (fun acc x ->
-		let r = { hd = x; tl = [] }  in
-		acc.tl <- inj r;
-		r) h e in
-	h.tl
+(* let of_enum e = *)
+(* 	let h = dummy_node() in *)
+(* 	let _ = BatEnum.fold (fun acc x -> *)
+(* 		let r = { hd = x; tl = [] }  in *)
+(* 		acc.tl <- inj r; *)
+(* 		r) h e in *)
+(* 	h.tl *)
 
 
 
-let backwards l = enum (rev l) (*TODO: should we make it more efficient?*)
+(* let backwards l = enum (rev l) (\*TODO: should we make it more efficient?*\) *)
 (*let backwards l = (*This version only needs one pass but is actually less lazy*)
   let rec aux acc = function
     | []   -> acc
@@ -594,11 +594,11 @@ let backwards l = enum (rev l) (*TODO: should we make it more efficient?*)
   in aux l*)
   
 
-let of_backwards e =
-  let rec aux acc = match BatEnum.get e with
-    | Some h -> aux (h::acc)
-    | None   -> acc
-  in aux []
+(* let of_backwards e = *)
+(*   let rec aux acc = match BatEnum.get e with *)
+(*     | Some h -> aux (h::acc) *)
+(*     | None   -> acc *)
+(*   in aux [] *)
 
 let assoc_inv e l =
   let rec aux = function
@@ -655,25 +655,25 @@ let rec n_cartesian_product = function [] -> assert false
 
 
 
-let print ?(first="[") ?(last="]") ?(sep="; ") print_a  out = function
-  | []   ->
-      BatInnerIO.nwrite out first;
-      BatInnerIO.nwrite out last
-  | [h]  ->
-      BatInnerIO.Printf.fprintf out "%s%a%s" first print_a h last
-  | h::t -> 
-      BatInnerIO.nwrite out first;
-      print_a out h;
-      iter (BatInnerIO.Printf.fprintf out "%s%a" sep print_a) t;
-      BatInnerIO.nwrite out last
+(* let print ?(first="[") ?(last="]") ?(sep="; ") print_a  out = function *)
+(*   | []   -> *)
+(*       BatInnerIO.nwrite out first; *)
+(*       BatInnerIO.nwrite out last *)
+(*   | [h]  -> *)
+(*       BatInnerIO.Printf.fprintf out "%s%a%s" first print_a h last *)
+(*   | h::t ->  *)
+(*       BatInnerIO.nwrite out first; *)
+(*       print_a out h; *)
+(*       iter (BatInnerIO.Printf.fprintf out "%s%a" sep print_a) t; *)
+(*       BatInnerIO.nwrite out last *)
 
-let t_printer a_printer paren out x = print (a_printer false) out x
+(* let t_printer a_printer paren out x = print (a_printer false) out x *)
 
-let sprint ?(first="[") ?(last="]") ?(sep="; ") print_a list =
-  BatPrintf.sprintf2 "%a" (print ~first ~last ~sep print_a) list
-(*  let os = BatInnerIO.output_string  () in
-  print ~first ~last ~sep print_a os list;
-  BatInnerIO.close_out os (* returns contents *)*)
+(* let sprint ?(first="[") ?(last="]") ?(sep="; ") print_a list = *)
+(*   BatPrintf.sprintf2 "%a" (print ~first ~last ~sep print_a) list *)
+(* (\*  let os = BatInnerIO.output_string  () in *)
+(*   print ~first ~last ~sep print_a os list; *)
+(*   BatInnerIO.close_out os (\* returns contents *\)*\) *)
 
 let reduce f = function [] -> invalid_arg "Empty List"
   | h::t -> fold_left f h t

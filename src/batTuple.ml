@@ -45,7 +45,7 @@ module Tuple2 = struct
   let curry f x y = f (x,y)
   let uncurry f (x,y) = f x y
     
-  let enum (x,y) = BatList.enum [x;y] (* Make efficient? *)
+  let enum (x,y) = assert false
     
   let of_enum e = match BatEnum.get e with 
       None -> failwith "Tuple2.of_enum: not enough elements" 
@@ -98,7 +98,7 @@ module Tuple3 = struct
   let curry f a b c = f (a,b,c)
   let uncurry f (a,b,c) = f a b c
 
-  let enum (a,b,c) = BatList.enum [a;b;c] (* Make efficient? *)
+  let enum (a,b,c) = assert false
 
   let of_enum e = match BatEnum.get e with
       None -> failwith "Tuple3.of_enum: not enough elements"
@@ -169,7 +169,7 @@ module Tuple4 = struct
   let curry f a b c d = f (a,b,c,d)
   let uncurry f (a,b,c,d) = f a b c d
 
-  let enum (a,b,c,d) = BatList.enum [a;b;c;d] (* Make efficient? *)
+  let enum (a,b,c,d) = assert false
 
   let of_enum e = match BatEnum.get e with
       None -> failwith "Tuple4.of_enum: not enough elements"
@@ -267,7 +267,7 @@ module Tuple5 = struct
   let curry f a b c d e = f (a,b,c,d,e)
   let uncurry f (a,b,c,d,e) = f a b c d e
 
-  let enum (a,b,c,d,e) = BatList.enum [a;b;c;d;e] (* Make efficient? *)
+  let enum (a,b,c,d,e) = assert false
 
   let of_enum e = match BatEnum.get e with
       None -> failwith "Tuple5.of_enum: not enough elements"

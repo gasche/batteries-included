@@ -647,8 +647,8 @@ let uppercase s =
 
 let init len f = of_enum (BatEnum.init len f)
 
-let of_list cl = of_enum (BatList.enum cl)
-let to_list r  = BatList.of_enum (enum r)
+let of_list cl = assert false
+let to_list r  = assert false
 
   
 let of_string_unsafe s = of_ustring (UTF8.of_string_unsafe s)
@@ -913,9 +913,9 @@ let replace ~str ~sub ~by =
       Invalid_rope -> (false, str)
 
 
-let explode r = BatList.of_enum (enum r)
+let explode r = assert false
 
-let implode r = of_enum (BatList.enum r)
+let implode r = assert false
 
 type t_alias = t (* fixes [type t = t] bug below *)
 

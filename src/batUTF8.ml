@@ -206,8 +206,8 @@ let string_splice s1 off len s2 =
     in
     make (ref (Byte.last us))
       
-  let of_backwards e =
-    of_enum (BatList.enum (BatList.of_backwards e))
+  let of_backwards e = assert false
+    (* of_enum (BatList.enum (BatList.of_backwards e)) *)
 
   let unsafe_get = get
  

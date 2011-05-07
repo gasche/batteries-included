@@ -127,15 +127,7 @@ let none_of l = (*label (
        (Vect.of_list (String.to_list "anything but ['"))
        l))))*)
 (*  label (Printf.sprintf2 "anything but [%a]" (List.print *)
-  label (BatList.sprint 
-	   ~first:"anything but ["
-	   ~sep:"; "
-	   ~last:"]" 
-	   (fun out c -> (BatPrintf.fprintf out "'%a'" BatUChar.print c))
-	   l
-	)
-	  (none_of l)
-
+  assert false
 let newline = satisfy BatUChar.is_newline
 
 let hex_uchars =

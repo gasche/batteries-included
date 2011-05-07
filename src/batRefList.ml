@@ -101,13 +101,13 @@ let npop rl n =
 	in
 	pop_aux !rl n
 
-let copy_enum ~dst ~src = dst := BatList.of_enum src
+let copy_enum ~dst ~src = dst := assert false
 
-let enum   rl = BatList.enum !rl
-let of_enum e = ref (BatList.of_enum e)
+let enum   rl = assert false
+let of_enum e = assert false
 
-let backwards     rl = BatList.backwards !rl
-let of_backwards  e  = ref (BatList.of_backwards e)
+let backwards     rl = assert false
+let of_backwards  e  = assert false
 
 let fold_left f a l = List.fold_left f a !l
 let fold_right f l a = BatList.fold_right f !l a

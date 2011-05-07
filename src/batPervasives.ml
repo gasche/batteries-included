@@ -328,7 +328,7 @@ open Pervasives
   let nativeint_printer = BatNativeint.t_printer
   let float_printer = BatFloat.t_printer
   let string_printer = BatString.t_printer
-  let list_printer = BatList.t_printer
+  let list_printer = fun _ -> assert false
   let array_printer = BatArray.t_printer
   let option_printer = BatOption.t_printer
   let maybe_printer = BatOption.maybe_printer

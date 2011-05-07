@@ -281,11 +281,7 @@ let man ~cmd ~kind ~singular ~plural ~undefined ~tabs subject =
     |   `Suggestions (l,table) when tabs -> browse (result_of_completions table singular subject l)
     |   `Suggestions ([h],table)         -> browse (result_of_completions table singular subject [h])
     |   `Suggestions (l,_) -> 
-	  BatPrintf.printf "Several %s exist with name %S. To obtain help on one of them, please use one of\n %a%!"
-	    plural subject
-	    (BatList.print ~first:"" ~sep:"\n " ~last:"\n" (fun out {qualified = q} -> BatPrintf.fprintf out " %s %S\n" cmd q))
-	    l
-
+	assert false
 (**
    Look for a given subject across all manuals and display the results.
 *)
@@ -316,11 +312,7 @@ let man_all sources ~tabs subject =
 		 (display :: result_as_strings, `Browse (h, table, singular))
 	     | `Suggestions (l,_)  ->
 		 let display : string = 
-		   BatPrintf.sprintf2 "There's information on %S in %s. To read this information, please use one of\n%a%!"
-		     subject plural
-		     (BatList.print ~first:"" ~sep:"" ~last:"" 
-			(fun out {qualified = q} -> BatPrintf.fprintf out " %s %S\n" cmd q))
-		     l
+                   assert false
 		 in (display::result_as_strings, `No_browsing))
       ([], `No_result) sources
       with 
@@ -329,10 +321,7 @@ let man_all sources ~tabs subject =
 	    | [] -> false (*Inconsistency*)
 	    | l' -> let _ = browse l' in true)
 	| (texts, _) ->
-	    BatPrintf.printf "Several definitions exist for %S.\n%a%!" subject
-	      (BatList.print ~first:"" ~sep:"\n" ~last:"\n" BatString.print)
-	      texts;
-	    true
+          assert false
   in if not found_something then
       Printf.printf "Sorry, I don't know anything about %S.\n%!" subject
 

@@ -59,8 +59,8 @@
       type 'a t = 'a list
 	  (**The type of lists*)
 
-      include BatEnum.Enumerable with type 'a enumerable = 'a t
-      include BatInterfaces.Mappable with type 'a mappable = 'a t
+      (* include BatEnum.Enumerable with type 'a enumerable = 'a t *)
+      (* include BatInterfaces.Mappable with type 'a mappable = 'a t *)
 
       (**{6 Base operations}*)
 
@@ -253,20 +253,20 @@
 
 	val unique : ?cmp:('a -> 'a -> bool) -> 'a list -> 'a list
 	(** [unique cmp l] returns the list [l] without any duplicate element.
-	 Default comparator ( = ) is used if no comparison function specified. 
+	 Default comparator ( = ) is used if no comparison function specified.
 	 
 	 This function takes O(n²) time.
 	 @see 'sort_unique' to save time in cases when reordering the list is acceptable
 	 *)
 
 	val unique_eq : ?eq:('a -> 'a -> bool) -> 'a list -> 'a list
-	(** As [unique] except comparator label is ~eq.  
+	(** As [unique] except comparator label is ~eq.
 	    @since 1.3.0
 	 *)
 
-	val unique_cmp : ?cmp:('a -> 'a -> int) -> 'a list -> 'a list
-	(** As [unique], except comparator parameter returns an int
-	    @since 1.3.0 *)
+	(* val unique_cmp : ?cmp:('a -> 'a -> int) -> 'a list -> 'a list *)
+	(* (\** As [unique], except comparator parameter returns an int *)
+	(*     @since 1.3.0 *\) *)
 
 	(**{6 Association lists}*)
 
@@ -337,24 +337,24 @@
 	    
 	    Abstraction layer.*)
 
-	val enum : 'a list -> 'a BatEnum.t
-	(** Returns an enumeration of the elements of a list. This enumeration may
-	    be used to visit elements of the list in forward order (i.e. from the
-	    first element to the last one)*)
+	(* val enum : 'a list -> 'a BatEnum.t *)
+	(* (\** Returns an enumeration of the elements of a list. This enumeration may *)
+	(*     be used to visit elements of the list in forward order (i.e. from the *)
+	(*     first element to the last one)*\) *)
 
-	val of_enum : 'a BatEnum.t -> 'a list
-	(** Build a list from an enumeration. In the result, elements appear in the
-	    same order as they did in the source enumeration. *)
+	(* val of_enum : 'a BatEnum.t -> 'a list *)
+	(* (\** Build a list from an enumeration. In the result, elements appear in the *)
+	(*     same order as they did in the source enumeration. *\) *)
 
-	val backwards : 'a list -> 'a BatEnum.t
-	(** Returns an enumeration of the elements of a list. This enumeration may
-	    be used to visit elements of the list in backwards order (i.e. from the
-	    last element to the first one)*)
+	(* val backwards : 'a list -> 'a BatEnum.t *)
+	(* (\** Returns an enumeration of the elements of a list. This enumeration may *)
+	(*     be used to visit elements of the list in backwards order (i.e. from the *)
+	(*     last element to the first one)*\) *)
 
-	val of_backwards : 'a BatEnum.t -> 'a list
-	(** Build a list from an enumeration. The first element of the enumeration
-	    becomes the last element of the list, the second element of the enumeration
-	    becomes the second-to-last element of the list... *)
+	(* val of_backwards : 'a BatEnum.t -> 'a list *)
+	(* (\** Build a list from an enumeration. The first element of the enumeration *)
+	(*     becomes the last element of the list, the second element of the enumeration *)
+	(*     becomes the second-to-last element of the list... *\) *)
 
 
 
@@ -413,13 +413,13 @@ For example [group cmp [f;c;b;e;d;a]] can give [[[a;b];[c];[d;e;f]]] if followin
 
 	(** {7 Printing}*)
 	  
-	val print : ?first:string -> ?last:string -> ?sep:string -> ('a BatInnerIO.output -> 'b -> unit) ->  'a BatInnerIO.output -> 'b list -> unit
-	  (**Print the contents of a list*)
+	(* val print : ?first:string -> ?last:string -> ?sep:string -> ('a BatInnerIO.output -> 'b -> unit) ->  'a BatInnerIO.output -> 'b list -> unit *)
+	(*   (\**Print the contents of a list*\) *)
 
-	val sprint : ?first:string -> ?last:string -> ?sep:string -> ('a BatInnerIO.output -> 'b -> unit) -> 'b list -> string
-	  (** Using a string printer, print a list to a string (as sprintf vs. printf)     @deprecated use {!BatIO.to_string}. *)
+	(* val sprint : ?first:string -> ?last:string -> ?sep:string -> ('a BatInnerIO.output -> 'b -> unit) -> 'b list -> string *)
+	(*   (\** Using a string printer, print a list to a string (as sprintf vs. printf)     @deprecated use {!BatIO.to_string}. *\) *)
 
-        val t_printer : 'a BatValue_printer.t -> 'a t BatValue_printer.t
+        (* val t_printer : 'a BatValue_printer.t -> 'a t BatValue_printer.t *)
 
 	(** {6 Obsolete functions} *)
 
