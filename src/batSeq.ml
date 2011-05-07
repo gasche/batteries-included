@@ -28,6 +28,8 @@ type 'a mappable = 'a t
 let nil () = Nil
 let cons e s () = Cons(e, s)
 
+let singleton x = cons x nil
+
 let length s =
   let rec aux acc s = match s () with
     | Nil -> acc

@@ -53,6 +53,15 @@ let snoc q x =
    (Q.list Q.int) (fun l -> List.fold_left snoc empty l |> to_list = l)
  **)
 
+let singleton x = { 
+  front = []; flen = 0;
+  rear = [x]; rlen = 1;
+}
+(**T singleton_one_size
+   size (singleton 2) = 1
+   to_list(singleton 1) = to_list(cons 1 empty)
+ **)
+
 let front q =
   match q.front with
     | h :: front -> Some (h, { q with front = front ; flen = q.flen - 1 })

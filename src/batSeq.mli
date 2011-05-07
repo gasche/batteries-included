@@ -99,9 +99,12 @@ val nil : 'a t
 val cons : 'a -> 'a t -> 'a t
   (** [cons e s = fun () -> Cons(e, s)] *)
 
+val singleton : 'a -> 'a t
+  (** [singleton e] is [cons e nil]. *)
+
 val make : int -> 'a -> 'a t
   (** [make n e] returns the sequence of length [n] where all elements
-      are [e] *)
+      are [e]. *)
 
 val init : int -> (int -> 'a) -> 'a t
   (** [init n f] returns the sequence returning the results of [f 0],

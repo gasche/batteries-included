@@ -64,6 +64,8 @@ let insert bh x =
     size = size ; data = data ; mind = mind
   }
 
+let singleton x = insert empty x
+
 (**T size_non_empty
    size (insert empty 3) = 1
 **)

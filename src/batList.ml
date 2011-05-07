@@ -40,6 +40,7 @@ external inj : 'a mut_list -> 'a list = "%identity"
 let dummy_node () = { hd = Obj.magic (); tl = [] }
 
 let cons h t = h::t
+let singleton x = x::[]
 
 let is_empty = function
   | [] -> true

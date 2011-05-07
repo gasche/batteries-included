@@ -47,6 +47,9 @@ val cons : 'a -> 'a dq -> 'a dq
 val snoc : 'a dq -> 'a -> 'a dq
   (** [snoc x dq] adds [x] to the rear of [dq]. O(1) *)
 
+val singleton : 'a -> 'a dq
+  (** [singleton x] is [cons x empty]. *)
+
 (** {6 Deconstruction} *)
 
 val front : 'a dq -> ('a * 'a dq) option

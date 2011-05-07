@@ -44,6 +44,8 @@ let next l = Lazy.force l
 
 let cons h t = Lazy.lazy_from_val (Cons(h, t))
 
+let singleton h = cons h nil
+
 let ( ^:^ ) = cons
 
 let get l = match next l with

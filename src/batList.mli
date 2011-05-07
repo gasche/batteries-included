@@ -68,7 +68,10 @@
 	  (** [is_empty e] returns true if [e] does not contains any element. *)
 
 	val cons : 'a -> 'a list -> 'a list
-	  (** [cons h t] returns the list starting with [h] and continuing as [t] *)
+	  (** [cons h t] returns the list starting with [h] and continuing as [t]. *)
+
+        val singleton : 'a -> 'a list
+          (** [singleton x] returns the list containing only [x]. *)
 
 	val first : 'a list -> 'a
 	  (** Returns the first element of the list, or raise [Empty_list] if

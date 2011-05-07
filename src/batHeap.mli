@@ -43,6 +43,9 @@ val add : 'a -> 'a t -> 'a t
   (** [add x h] is the same as [insert h x]. This function is intended
       to be used with [fold_right]. *)
 
+val singleton: 'a -> 'a t
+  (** [singleton x] is [add x empty] *)
+
 (** {6 Operations} *)
 
 val merge : 'a t -> 'a t -> 'a t
