@@ -195,7 +195,6 @@ let init n f = (*Experimental fix for init*)
     e.count <- (fun () -> !count);
     e
 
-
 let get t =
   try   Some (t.next())
   with	No_more_elements -> None
@@ -221,6 +220,9 @@ let push t e =
 			tc);
 	in
 	make t
+
+let cons e t =
+  push t e; t
 
 let peek t =
 	match get t with

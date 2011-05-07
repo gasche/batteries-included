@@ -182,6 +182,11 @@ val get : 'a t -> 'a option
 
 val push : 'a t -> 'a -> unit
   (** [push e x] will add [x] at the beginning of [e]. *)
+
+val cons : 'a -> 'a t -> 'a t
+  (** [cons e x] add an element at the beggining of [e], then return it.
+      This is a still a destructive operation: [e] is mutated,
+      as when using [push]. *)
   
 val junk : 'a t -> unit
   (** [junk e] removes the first element from the enumeration, if any. *)
