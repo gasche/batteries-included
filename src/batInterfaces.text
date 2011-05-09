@@ -1,0 +1,328 @@
+# Data structure interfaces
+
+A lot of things may be considered data structures, and have very
+different characteristics. The usual data structure examples are ('a
+list) and ('a array). (string) is a monomorphic datastructure, which
+only accepts "elements" of one type, (char). There is no universal
+definition of what a data structure is, and there may be corner cases
+which may, or may not, fit one's vision of datastructures. Are bitsets
+a data structure ?
+
+Here is a (hopefully up-to-date) list of the data-structure-related
+modules in batteries :
+- BatAvlTree : 'a tree, polymorphic, int-indexed, variable-length
+- BatArray : 'a array, polymorphic, linear, fixed-length, int-indexed
+- BatBigArray : ('a, 'kind, 'layout) GenArray.t (or ArrayN.t), weirdly
+   polymorphic with the 'kind and 'layout parameter, linear, fixed-length
+   int-indexed
+- BatBitSet : t, bool-monorphic int-indexed variable-length linear
+- BatBuffer : t, char-monomorphic variable-length linear
+- BatComplex : t, float-monomorphic constant(2)-length int-indexed
+- BatDllList : 'a t, polymorphic, circular, variable-length
+- BatDynArray : 'a t, polymorphic, linear, int-indexed, variable-length
+- BatEnum : 'a t, polymorphic, linear
+- BatFile : probably not a data structure, rather an IO-related module
+- BatGlobal : 'a t, polymorphic, linear, constant(0,1)-length
+- BatHashtbl : ('a, 'b) t, 'b-polymorphic ordered(by hash) 'a-indexed variable-length
+- BatInnerWeaktbl : similar to BatHashtbl
+- BatIMap : 'a t, polymorphic int-indexed variable-length
+- BatISet : t, int-monomorphic int-indexed variable-length
+- BatLazyList : similar to Enum
+- BatList : similar to Enum
+- BatMap : same as BatPMap
+- BatMap.S : 'a t, polymorphic functor-indexed ordered(by functor compare) variable-length
+- BatMultiPMap : ('a, 'b) t, polymorphic multi-indexed ordered(by compare) variable-length
+- BatOption : 'a option, polymorphic, linear, constant(0,1)-length
+- BatPMap: ('a, 'b) t, 'b-polymorphic 'a-indexed ordered(by compare) variable-length
+- BatPSet : 'a t, polymorphic orederd(by compare) variable-length
+- BatPair : ('a * 'b), bi-polymorphic constant(2)-length 
+  shouldn't we have BatTuple.TupN ?
+- BatQueue : 'a Queue.t, polymorphic linear variable-length
+- BatRef : 'a ref, polymorphic linear constant(1)-length
+- BatRefList : 'a ref list, polymorphic, linear, variable-length
+- BatResult : ('a, 'b) result, bi-polymorphic constant(1)-length
+  shouldn't we have BatEither or BatSum.SumN ?
+- BatRope : char-monomorphic int-indexed variable-length
+- BatSeq : 'a t, polymorphic linear variable-length, should be better documented
+- BatSet : same as BatPSet
+- BatSet.S : t, monomorphic ordered(by functor compare) variable-length
+- BatStack : similar to BatQueue
+- BatString : string, char-monomorphic int-indexed fixed-length
+- BatStream : 'a Stream.t, polymorphic linear variable-length
+- BatSubString : t, char-monomorphic int-indexed fixed-length
+- BatUtf8 : t, BatUChar-monomorphic int-indexed fixed-length
+- BatVect : 'a t, polymorphic ~int-indexed variable-length
+
+Constant types :
+- BatChar
+- BatComplex
+- BatFloat
+- BatInt
+- BatInt32
+- BatInt64
+- BatNativeInt
+- BatNum
+- BatUChar
+- BatUnit
+
+
+## Data structure operations
+
+- concat : 'a t -> 'a t -> 'a t
+
+- map : ('a -> 'b) -> ('a t -> 'b t).
+
+  Map is very useful and used, it has a strong theoretical
+  justification (categorically, polymorphic types with map are
+  covariant functors).
+
+  An issue with map : some polymorphic structure do not have a simple
+    map as they rely on stronger invariants, eg. polymorphic set may
+    only be mapped using order-preserving functions. Can we take it
+    into account ?
+
+- filter : ('a -> bool) -> 'a t -> 'a t
+  
+  Some structure have a reasonably efficient filter operation (List),
+  other do not. Should we present an uniform interface for those ?
+
+- copy : 'a t -> 'a t
+
+  For imperative data structure only. Should side effect issues
+  influence the data structure interface ?
+
+- mem : 'a -> 'a t -> bool
+
+  This membership test relies on a intrisic (in the data structure)
+  notion of equality. It may not be parametrized by arbitrary equality
+  predicates, orelse an efficient implementation isn't possible
+  anymore. For example for polymorphic sets, equality using the
+  intrisic order determined at set construction is O(log n), while
+  arbitrary equality relation necessitate a O(n) traversal of the
+  structure.
+
+  External equality predicates must we used with the "exists"
+  functions, see the next "fold" section.
+
+  A variant using physical equality may also be useful.
+
+
+- linear routines
+
+  fold(_left) : ('elem -> 'accu -> 'accu) -> 'elem t -> 'accu -> 'accu
+  
+  enum : 'a t -> 'a enum
+  of_enum : 'a enum -> 'a t
+
+  for_all : ('a -> bool) -> 'a t -> bool
+  exists : ('a -> bool) -> 'a t -> bool
+
+
+- fixpoint routines :
+
+  for data structures that are a fixpoint : 'a t = Fix('a derec_t)
+
+  fold : ('a derec_t -> 'b) -> 'a t -> 'b
+  unfold : ('a -> 'b derec_t) -> 'a -> 'b t
+  
+  map can also be derived from a fixpoint representation
+
+- Indexed operations
+  
+  associative data structure often come with indexed variants of the
+  usual routines
+  
+  Array.mapi : (integer -> 'a -> 'b) -> 'a t -> 'b t
+
+  It may be desirable to provide an uniform interface for indexed
+  variants of the routines. Associative data structures should also
+  provide a (key * value) enumeration interface (for transformation
+  from and to linear non-associative structures).
+
+  It should also be possible to consider the domain of an indexed data
+  structure, without bothering with the keys. Projection functions to
+  an equivalent domain-only data structure are desirable. Codomain
+  projection may also be helpful.
+
+
+Implementation status for Mappable interfaces :
+- BatAvlTree
+    should be a MappableMonoAssoc[int], no underlying map implementation for now
+
+- BatArray
+    MappableMonoAssoc[int]
+
+- BatBigArray
+    no Mappable because of the additional kind parameter
+    val map : ('a -> 'b) -> ('b, 'c) Bigarray.kind -> ('a, 'd, 'e) t -> ('b, 'c, 'e) t
+    val mapi : (int -> 'a -> 'b) -> ('b, 'c) Bigarray.kind -> ('a, 'd, 'e) t -> ('b, 'c, 'e) t
+
+    Would a ParametrizedMap functor be needed ?
+
+- BatBitSet
+    no underlying map implementation for now, should be MonoMappableMonoAssoc[int,bool]
+  
+- BatBuffer
+    no underlying implementation; could be MonoMappable[char] or
+    MonoMappableMonoAssoc[int,char], but is this really useful/desirable ?
+
+- BatComplex
+    no underlying implementation
+
+- BatDllList
+    Mappable
+
+- BatDynArray
+    MappableMonoAssoc[int]
+
+- BatEnum
+    MappableMonoAssoc[int]
+
+- BatGlobal
+    no underlying map implementation, shoud be Mappable
+
+- BatHashtbl
+    does not have Mappable as Hashtbl.map is actually a mapi however,
+    both the polymorphic map and Map.S carry an inner module
+    (MappableAssoc and MappableMonoAssoc respectively) with correct
+    map and mapi definitions
+
+- BatInnerWeaktbl
+    no underlying map implementation for the polymorphic part,
+    Hashtbl.S for the monomorphic part
+    
+    Should we use a proper polymorphic map, or reproduce the map/mapi
+    discrepancy ? Shouldn't the monomorphic be extended to
+    BatHashtbl.S ?
+
+- BatIMap
+    no Mappable instance due to an equality parameter :
+      val map : ?eq:('b -> 'b -> bool) -> ('a -> 'b) -> 'a t -> 'b t
+      val mapi : ?eq:('b -> 'b -> bool) -> (int -> 'a -> 'b) -> 'a t -> 'b t
+   as for BatBigarray, we might provide a parametrized map
+
+- BatISet
+    no underlying map implementation, should be MonoMappable[int],
+
+    would have "bad" (linear) complexity vs. the rest of the module,
+    except if the map is monotonous
+
+- BatLazyList
+    MappableMonoAssoc[int]
+
+- BatList
+    MappableMonoAssoc[int]
+
+- BatMap.S
+    monomorphic map have MappableMonoAssoc, but due to the present of
+    specific map,mapi documentation in the .mli, it is only enforced
+    in the .ml; exterior enforcment may be a better organization
+
+- BatMap
+    MappableAssoc (polymorphic maps)
+
+- BatMultiPMap
+    too weird to be mappable
+      val map : ('b BatPSet.t -> 'c BatPSet.t) ->
+                (('b -> 'b -> int) -> ('c -> 'c -> int)) ->
+                ('a, 'b) t -> ('a, 'c) t
+      val mapi : ('a -> 'b BatPSet.t -> 'c BatPSet.t) ->
+                 (('b -> 'b -> int) -> ('c -> 'c -> int)) ->
+                 ('a, 'b) t -> ('a, 'c) t
+
+    Remark : the order-transforming parameter of 'map' is actually not
+    necessary, as it can be recovered from the set-transforming
+    parameter (sets contain a comparison). This is not possible for
+    'mapi' wich requires a 'a element to yield the set-transform, and
+    we don't necessarily have one available.
+    
+    We could present map as a transformation ('b u -> 'c u) -> ('b v -> 'c v),
+    with:
+      'b v := ('a, 'b) t and
+      'b u := ('b BatPSet.t * ('b -> 'b -> int))
+    Is this a general parametrized map form?
+    Does it fit Bigarray and IMap?
+
+- BatOption
+    Mappable
+    
+    /!\ Option.bind is not coherent with Monad.bind
+
+- BatPMap
+    MappableAssoc (see BatMap)
+- BatPSet
+    Mappable (see BatSet)
+
+- BatPair
+    Mappable with type 'a mappable = 'a * 'a
+
+- BatQueue
+    no underlying Mappable or MappableMonoAssoc[int] implementation
+   
+- BatRef
+    no underlying Mappable implementation
+
+- BatRefList
+    Mappable; should be MappableMonoAssoc[int] but no underlying mapi
+  
+- BatResult : ('a, 'b) result, bi-polymorphic constant(1)-length
+    no underlying Mappable implementation
+    should be map : ('a -> 'b) -> ('a, 'c) result -> ('b, 'c) result
+
+    it is different from either that would probably have
+      map : ('a -> 'b) -> ('a, 'a) either -> ('b, 'b) either
+      map2 : ('a -> 'b) -> ('c -> 'd) -> ('a, 'c) either -> ('b, 'd) either
+
+- BatRope
+    two map modules :
+      CharMonoMappable : MonoMappable[UChar.t]
+      BulkMonoMappable : MonoMappable[BatUTF8.t]
+    CharMonoMappable included in the plain module
+
+- BatSeq
+    Mappable
+
+- BatSet
+    Mappable
+
+    it may be interesting to provide a map_monotonous operation
+
+- BatSet.S
+    MonoMappable[elt]
+    
+    same problem as BatMap.S, interface enforced in implementation but
+    not in .mli.
+
+- BatStack
+    no underlying implementation (similar to BatQueue)
+  
+- BatString
+    MonoMappable[char]; should be MonoMappableMonoAssoc[int,char] but
+    no underlying mapi implementation.
+  
+- BatStream
+    Mappable; should we extend to MappableMonoAssoc[int] ?
+
+- BatSubString
+    should it have a map ? no underlying implementation.
+
+- BatUtf8
+    MonoMappable[UChar.t]; should be
+    MonoMappableMonoAssoc[int,UChar.t], but not underlying mapi
+    implementation
+
+- BatVect
+    MappableMonoAssoc[int] for both the plain module and the Make functor
+
+
+## Ordering, equality and hashing operations
+
+The standard ordering interface (BatInterface.OrderedType) provides
+a ('a -> 'a -> int) function, in the style of Pervasives.compare :
+(<0), (=0), (>0). It may be nicer to provide an algebraic Lt|Eq|Gt
+ordering.
+
+Base types should provide comparison routines.
+
+Parametrized types (by a functor or a type parameter) should provide
+lifted comparison routines.
