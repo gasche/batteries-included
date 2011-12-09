@@ -229,8 +229,20 @@ module MakeNumeric (Base : NUMERIC_BASE) : Numeric with type t = Base.t = struct
 
   type discrete = t
 
-  include MakeInfix (Base)
-  include MakeCompare (Base)
+  (** Note on Infix operators: we define both Infix and Compare as
+      result submodules, but we only include Infix. This is important
+      because Compare would shadow the usual polymorphic operators =, <,
+      etc., that the user doesn't expect to change silently.
+
+      We used to include Compare as well, and we ended up in
+      a situation where
+          open BatFloat
+          assert (List.map round [3.; 0.5 + 2.] = [3; 3])
+      would raise a very surprising typing error because of overriden (=)
+  *)
+  module Infix = MakeInfix
+  module Compare = MakeCompare (Base)
+  include Infix
 end
 
 (**

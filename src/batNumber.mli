@@ -82,8 +82,9 @@ type 'a numeric =
     to_float: 'a -> float;
 }
 
+
 (**
-   The infix operators available with any type of numbers
+   The usual infix operators available with any type of numbers
 *)
 module type Infix = sig
   type bat__infix_t
@@ -110,11 +111,22 @@ module type Compare = sig
   val ( = ) : bat__compare_t -> bat__compare_t -> bool
 end
 
+module type Discrete =
+sig
+  type discrete
+  val to_int: discrete -> int
+  val succ  : discrete -> discrete
+  val pred  : discrete -> discrete
+  val ( -- ): discrete -> discrete -> discrete BatEnum.t
+  val ( --- ): discrete -> discrete -> discrete BatEnum.t
+end
+
 (**
-   The full set of operations of a type of numbers
+   The common set of operations of a type of numbers
 *)
-module type Numeric =
-sig  
+
+module type NumericCommon =
+sig
   type t
   val zero : t
   val one : t
@@ -136,14 +148,19 @@ sig
 
   val operations : t numeric
 
-  type discrete = t
-  (* to_int already provided *)
-  val succ : t -> t
-  val pred : t -> t
-
+  include Discrete with type discrete = t
   include Infix with type bat__infix_t = t
-  include Compare with type bat__compare_t = t
+end
 
+(**
+   The full set of operations of a type of numbers,
+   including submodules
+*)
+module type Numeric =
+sig
+  include NumericCommon
+  module Infix : Infix with type bat__infix_t = t
+  module Compare : Compare with type bat__compare_t = t
 end
 
 module type Bounded =
@@ -151,16 +168,6 @@ sig
   type bounded
   val min_num: bounded
   val max_num: bounded
-end
-
-module type Discrete =
-sig
-  type discrete
-  val to_int: discrete -> int
-  val succ  : discrete -> discrete
-  val pred  : discrete -> discrete
-  val ( -- ): discrete -> discrete -> discrete BatEnum.t
-  val ( --- ): discrete -> discrete -> discrete BatEnum.t
 end
 
 (**/**)
@@ -222,17 +229,31 @@ module MakeInfix :
 (** Automated definition of infix comparison operators for a given numeric type,
     so that you can open it only when you mean it.
 	(apart from the type bat__compare_t) *)
-
 module MakeCompare :
   functor (Base : NUMERIC_BASE) -> Compare with type bat__compare_t = Base.t
 
+(** Automated definition of operators for a given numeric type,
+    without Infix and Compare submodules.
+    
+    You will need this if you wish to provide your own Infix and
+    Compare submodules; including a Numeric instead would create
+    a conflict between submodules. *)
+module MakeNumericCommon :
+  functor (Base : NUMERIC_BASE) -> NumericCommon with type t = Base.t
+
 (** Automated definition of operators for a given numeric type.
     You will only need this if you develop your own numeric modules.*)
-
 module MakeNumeric :
   functor (Base : NUMERIC_BASE) -> Numeric with type t = Base.t
 
-(* a generic exponentiation function which efficiently computes a^n as
-   the product of repeated squares, depending on the base-2 expansion
-   of the exponent. ex. a^1 * a^4 * ... a^8 for n=13 *)
-val generic_pow : zero:'a -> one:'a -> div_two:('a -> 'a) -> mod_two:('a -> 'a) -> mul:('a -> 'a -> 'a) -> 'a -> 'a -> 'a
+(** A generic 'fast exponentiation' function, which efficiently
+    computes a^n as the product of repeated squares, depending on the
+    base-2 expansion of the exponent. For example, [a^13] is computed in
+    5 multiplications as [a * ((a*a²)²)²] *)
+val generic_pow :
+  zero:'a ->
+  one:'a ->
+  div_two:('a -> 'a) ->
+  mod_two:('a -> 'a) ->
+  mul:('a -> 'a -> 'a) ->
+  'a -> 'a -> 'a
