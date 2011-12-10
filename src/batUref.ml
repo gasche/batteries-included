@@ -34,17 +34,33 @@ let rec find ur = match !ur with
       vr
   | _ -> ur
 
+(* a richer interface for [find]: the simple [find] above only returns
+   the reference to the head, forcing an assert-falty programming style:
+   
+     match !(find ur) with
+       | Ptr _ -> assert false
+       | Ranked (x, r) -> ...
+
+   with this [find_triple] version we return [x] and [r] directly, so
+   that no conditional is necessary, plus the reference to the head to
+   allow further mutation.
+*)
+let rec find_triple ur = match !ur with
+  | Ptr p ->
+      let (vr, _, _) as res = find_triple p in
+      ur := Ptr vr ;
+      res
+  | Ranked (x, r) -> (ur, x, r)
+
 let uref x = ref (Ranked (x, 0))
 
-let uget ur = match !(find ur) with
-  | Ptr _ -> assert false
-  | Ranked (x, _) -> x
+let uget ur =
+  let (_vr, x, _r) = find_triple ur in
+  x
 
-let uset ur x =
-  let ur = find ur in
-  match !ur with
-    | Ptr _ -> assert false
-    | Ranked (_, r) -> ur := Ranked (x, r)
+let uset ur y =
+  let (vr, _x, r) = find_triple ur in
+  ur := Ranked (y, r)
 
 let equal ur vr =
   find ur == find vr
@@ -54,8 +70,8 @@ let unite ?sel ur vr =
      able to know whether a selection function was passed, for
      optimization purposes: when sel is the default (expected common
      case), we can take a short path in the (ur == vr) case. *)
-  let ur = find ur in
-  let vr = find vr in
+  let (ur, x, xr) = find_triple ur in
+  let (vr, y, yr) = find_triple vr in
   if ur == vr then begin
     match sel with
       | None -> ()
@@ -65,36 +81,27 @@ let unite ?sel ur vr =
            
            For example, [unite ~sel:(fun _ _ -> v) r r] would fail
            to set the content of [r] to [v] otherwise. *)
-        match !ur with
-          | Ptr _ -> assert false
-          | Ranked (x, r) ->
-            let x' = sel x x in
-            ur := Ranked(x', r)
+        ur := Ranked(sel x x, xr)
   end 
   else
-    match !ur, !vr with
-      | _, Ptr _ | Ptr _, _ -> assert false
-      | Ranked (x, xr), Ranked (y, yr) ->
-        let z = match sel with
-          | None -> x (* in the default case, pick x *)
-          | Some sel -> sel x y in
-          if xr = yr then begin
-            ur := Ranked (z, xr + 1) ;
-            vr := Ptr ur
-          end else if xr < yr then begin
-            ur := Ranked (z, xr) ;
-            vr := Ptr ur
-          end else begin
-            vr := Ranked (z, yr) ;
-            ur := Ptr vr
-          end
+    let z = match sel with
+      | None -> x (* in the default case, pick x over y *)
+      | Some sel -> sel x y in
+    if xr = yr then begin
+      ur := Ranked (z, xr + 1) ;
+      vr := Ptr ur
+    end else if xr < yr then begin
+      ur := Ranked (z, xr) ;
+      vr := Ptr ur
+    end else begin
+      vr := Ranked (z, yr) ;
+      ur := Ptr vr
+    end
 
-let print elepr out ur = match !(find ur) with
-  | Ptr _ -> assert false
-  | Ranked (x, _) ->
-      BatInnerIO.nwrite out "uref " ;
-      elepr out x
-      
+let print elepr out ur =
+  let (_ur, x, _r) = find_triple ur in
+  BatInnerIO.nwrite out "uref " ;
+  elepr out x
 
 let t_printer elepr paren out ur =
   if paren then BatInnerIO.nwrite out "(" ;
