@@ -27,18 +27,7 @@ and 'a uref = 'a uref_contents ref
 
 type 'a t = 'a uref
 
-(* a richer interface for [find]: the simple [find] above only returns
-   the reference to the head, forcing an assert-falty programming style:
-   
-     match !(find ur) with
-       | Ptr _ -> assert false
-       | Ranked (x, r) -> ...
-
-   With this [find_triple] version we return [x] and [r] directly, so
-   that no conditional is necessary, plus the reference to the head to
-   allow further mutation.
-*)
-let rec find_triple curr = match !curr with
+let rec find curr = match !curr with
   | Ranked (x, r) -> (curr, x, r)
   | Ptr next -> find_back curr next
 and find_back back curr =
@@ -70,8 +59,8 @@ let uset ur y =
       a := Ranked (y, r)
 
 let equal ur vr =
-  let (ur, _, _) = find_triple ur in
-  let (vr, _, _) = find_triple vr in
+  let (ur, _, _) = find ur in
+  let (vr, _, _) = find vr in
   ur == vr
 
 let unite ?sel ur vr =
@@ -79,8 +68,8 @@ let unite ?sel ur vr =
      able to know whether a selection function was passed, for
      optimization purposes: when sel is the default (expected common
      case), we can take a short path in the (ur == vr) case. *)
-  let (ur, x, xr) = find_triple ur in
-  let (vr, y, yr) = find_triple vr in
+  let (ur, x, xr) = find ur in
+  let (vr, y, yr) = find vr in
   if ur == vr then begin
     match sel with
       | None -> ()
@@ -108,7 +97,7 @@ let unite ?sel ur vr =
     end
 
 let print elepr out ur =
-  let (_ur, x, _r) = find_triple ur in
+  let (_ur, x, _r) = find ur in
   BatInnerIO.nwrite out "uref " ;
   elepr out x
 
