@@ -27,13 +27,6 @@ and 'a uref = 'a uref_contents ref
 
 type 'a t = 'a uref
 
-let rec find ur = match !ur with
-  | Ptr p ->
-      let vr = find p in
-      ur := Ptr vr ;
-      vr
-  | _ -> ur
-
 (* a richer interface for [find]: the simple [find] above only returns
    the reference to the head, forcing an assert-falty programming style:
    
@@ -41,29 +34,45 @@ let rec find ur = match !ur with
        | Ptr _ -> assert false
        | Ranked (x, r) -> ...
 
-   with this [find_triple] version we return [x] and [r] directly, so
+   With this [find_triple] version we return [x] and [r] directly, so
    that no conditional is necessary, plus the reference to the head to
    allow further mutation.
 *)
-let rec find_triple ur = match !ur with
-  | Ptr p ->
-      let (vr, _, _) as res = find_triple p in
-      ur := Ptr vr ;
-      res
-  | Ranked (x, r) -> (ur, x, r)
+let rec find_triple curr = match !curr with
+  | Ranked (x, r) -> (curr, x, r)
+  | Ptr next -> find_back curr next
+and find_back back curr =
+  match !curr with
+    | Ranked (x, r) -> (curr, x, r)
+    | Ptr next ->
+      let result = find_back curr next in
+      (* we could write equivalently:
+           let (head, _, _) = find_back curr next in
+           back := Ptr head
+         but !curr is (Ptr head) already, so this avoids allocation. *)
+      back := !curr;
+      result
 
 let uref x = ref (Ranked (x, 0))
 
 let uget ur =
-  let (_vr, x, _r) = find_triple ur in
-  x
+  match !ur with
+    | Ranked (x, _) -> x
+    | Ptr p ->
+      let (_a, x, r) = find_back ur p in
+      x
 
 let uset ur y =
-  let (vr, _x, r) = find_triple ur in
-  ur := Ranked (y, r)
+  match !ur with
+    | Ranked (_x, r) -> ur := Ranked (y, r)
+    | Ptr p ->
+      let (a, _x, r) = find_back ur p in
+      a := Ranked (y, r)
 
 let equal ur vr =
-  find ur == find vr
+  let (ur, _, _) = find_triple ur in
+  let (vr, _, _) = find_triple vr in
+  ur == vr
 
 let unite ?sel ur vr =
   (* we use ?sel instead of ?(sel=(fun x _y -> x)) because we want to be
