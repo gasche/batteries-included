@@ -21,18 +21,19 @@
 (* Implements union-find with ranks and path-compression  *)
 
 type 'a uref_contents =
-  | Ranked of 'a * int
+  | Ranked of 'a head
   | Ptr of 'a uref
+and 'a head = { mutable data : 'a; mutable rank : int }
 and 'a uref = 'a uref_contents ref
 
 type 'a t = 'a uref
 
 let rec find curr = match !curr with
-  | Ranked (x, r) -> (curr, x, r)
+  | Ranked head -> (curr, head)
   | Ptr next -> find_back curr next
 and find_back back curr =
   match !curr with
-    | Ranked (x, r) -> (curr, x, r)
+    | Ranked head -> (curr, head)
     | Ptr next ->
       let result = find_back curr next in
       (* we could write equivalently:
@@ -42,25 +43,25 @@ and find_back back curr =
       back := !curr;
       result
 
-let uref x = ref (Ranked (x, 0))
+let uref x = ref (Ranked { data = x; rank = 0 })
 
 let uget ur =
   match !ur with
-    | Ranked (x, _) -> x
+    | Ranked head -> head.data
     | Ptr p ->
-      let (_a, x, r) = find_back ur p in
-      x
+      let (_, head) = find_back ur p in
+      head.data
 
-let uset ur y =
+let uset ur x =
   match !ur with
-    | Ranked (_x, r) -> ur := Ranked (y, r)
+    | Ranked head -> head.data <- x;
     | Ptr p ->
-      let (a, _x, r) = find_back ur p in
-      a := Ranked (y, r)
+      let (_, head) = find_back ur p in
+      head.data <- x
 
 let equal ur vr =
-  let (ur, _, _) = find ur in
-  let (vr, _, _) = find vr in
+  let (ur, _) = find ur in
+  let (vr, _) = find vr in
   ur == vr
 
 let unite ?sel ur vr =
@@ -68,8 +69,8 @@ let unite ?sel ur vr =
      able to know whether a selection function was passed, for
      optimization purposes: when sel is the default (expected common
      case), we can take a short path in the (ur == vr) case. *)
-  let (ur, x, xr) = find ur in
-  let (vr, y, yr) = find vr in
+  let (ur, ({data=x; rank=xr} as uhead)) = find ur in
+  let (vr, ({data=y; rank=yr} as vhead)) = find vr in
   if ur == vr then begin
     match sel with
       | None -> ()
@@ -79,27 +80,30 @@ let unite ?sel ur vr =
            
            For example, [unite ~sel:(fun _ _ -> v) r r] would fail
            to set the content of [r] to [v] otherwise. *)
-        ur := Ranked(sel x x, xr)
+        uhead.data <- sel x x;
   end 
   else
+    (* in this branch we can set (vr := Ptr ur) or (ur := Ptr vr)
+       because we know that ur != vr, so we will not create a cycle *)
     let z = match sel with
       | None -> x (* in the default case, pick x over y *)
       | Some sel -> sel x y in
     if xr = yr then begin
-      ur := Ranked (z, xr + 1) ;
+      uhead.rank <- xr + 1;
+      uhead.data <- z;
       vr := Ptr ur
     end else if xr < yr then begin
-      ur := Ranked (z, xr) ;
+      uhead.data <- z;
       vr := Ptr ur
     end else begin
-      vr := Ranked (z, yr) ;
+      vhead.data <- z;
       ur := Ptr vr
     end
 
 let print elepr out ur =
-  let (_ur, x, _r) = find ur in
+  let (_ur, head) = find ur in
   BatInnerIO.nwrite out "uref " ;
-  elepr out x
+  elepr out head.data
 
 let t_printer elepr paren out ur =
   if paren then BatInnerIO.nwrite out "(" ;
