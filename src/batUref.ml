@@ -85,20 +85,24 @@ let unite ?sel ur vr =
   else
     (* in this branch we can set (vr := Ptr ur) or (ur := Ptr vr)
        because we know that ur != vr, so we will not create a cycle *)
-    let z = match sel with
-      | None -> x (* in the default case, pick x over y *)
-      | Some sel -> sel x y in
-    if xr = yr then begin
-      uhead.rank <- xr + 1;
-      uhead.data <- z;
-      vr := Ptr ur
-    end else if xr < yr then begin
-      uhead.data <- z;
-      vr := Ptr ur
-    end else begin
-      vhead.data <- z;
-      ur := Ptr vr
-    end
+    let head =
+      if xr = yr then begin
+        uhead.rank <- xr + 1;
+        vr := Ptr ur;
+        uhead
+      end else if xr < yr then begin
+        vr := Ptr ur;
+        uhead
+      end else begin
+        ur := Ptr vr;
+        vhead
+      end in
+    match sel with
+      | None -> (* in the default case, pick x over y *)
+        if xr > yr (* if vhead was chosen above, we need to set x *)
+        then head.data <- x
+      | Some sel ->
+        head.data <- sel x y
 
 let print elepr out ur =
   let (_ur, head) = find ur in
