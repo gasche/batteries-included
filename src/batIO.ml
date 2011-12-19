@@ -485,6 +485,7 @@ let doubles_of      input = make_enum read_double      input
 let floats_of       input = make_enum read_float       input
 let strings_of      input = make_enum read_string      input
 let lines_of        input = make_enum read_line        input
+let lines_of2       input = make_enum read_line2       input
 let chunks_of n     input = make_enum (fun ic -> nread ic n) input
 
 (**The number of chars to read at once*)

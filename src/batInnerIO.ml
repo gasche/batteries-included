@@ -442,8 +442,6 @@ let pipe() =
   in
     input , output
 
-
-
 (*let to_input_channel inp =
   let (fin, fout) = Unix.pipe () in
     let outp = out_channel fout  in
@@ -507,6 +505,68 @@ let read_line i =
 				Buffer.contents b
 			else
 				raise No_more_input
+
+let unread_string str pos len input =
+  let limit = pos + len in
+  let curr = ref pos in
+  let restore =
+    let old_read = input.in_read in
+    let old_input = input.in_input in
+    fun () ->
+      input.in_read <- old_read;
+      input.in_input <- old_input;
+      ()
+  in
+  input.in_read <- (fun () ->
+    if !curr = limit then begin
+      restore ();
+      input.in_read ()
+    end
+    else begin
+      incr curr;
+      str.[!curr-1]
+    end);
+  input.in_input <- (fun s p l ->
+    let curr' = !curr + l in
+    if curr' < limit then begin
+      String.blit str !curr s p l;
+      curr := curr';
+      l
+    end else begin
+      let l1 = limit - !curr in
+      String.blit str !curr s p l1;
+      restore ();
+      let l2 = input.in_input s (p + l1) (l - l1) in
+      l1 + l2
+    end);
+  ()
+
+let read_line2 =
+  fun input ->
+    let buff_len = 256 in
+    let buff = String.create buff_len in
+    let b = Buffer.create buff_len in
+    let rec find_chunk () =
+      let nread = input.in_input buff 0 buff_len in
+      let rec loop i =
+        if i = nread then None
+        else 
+          if buff.[i] = '\n' then Some i
+          else loop (i + 1) in
+      match loop 0 with
+        | Some i ->
+          Buffer.add_substring b buff 0 i;
+          (* 'i+1' because we skip the newline *)
+          if i+1 < nread then
+            unread_string buff (i+1) (nread - i - 1) input;
+          Buffer.contents b
+        | None ->
+          Buffer.add_substring b buff 0 nread;
+          if nread < buff_len then begin
+            Buffer.contents b
+          end else
+            find_chunk ()
+    in find_chunk ()            
 
 let read_ui16 i =
 	let ch1 = read_byte i in
