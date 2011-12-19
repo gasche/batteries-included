@@ -446,6 +446,12 @@ val read_line : input -> string
   (** Read a LF or CRLF terminated string. If the source runs out of
       input before a LF is found, returns a string of the remaining input.
       Will raise [No_more_input] only if no characters are available. *)
+val read_line2 : input -> string
+  (** Read a LF or CRLF terminated string. If the source runs out of
+      input before a LF is found, returns a string of the remaining input.
+      Will raise [No_more_input] only if no characters are available. *)
+
+val unread_string : string -> int -> int -> input -> unit
 
 val read_uline: input -> Ulib.Text.t
 (** Read a line of UTF-8*)
@@ -877,6 +883,9 @@ val strings_of : input -> string BatEnum.t
 (** Read an enumeration of null-terminated strings. *)
 
 val lines_of : input -> string BatEnum.t
+(** Read an enumeration of LF or CRLF terminated strings. *)
+
+val lines_of2 : input -> string BatEnum.t
 (** Read an enumeration of LF or CRLF terminated strings. *)
 
 val chunks_of : int -> input -> string BatEnum.t

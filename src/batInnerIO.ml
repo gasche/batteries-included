@@ -442,8 +442,6 @@ let pipe() =
   in
     input , output
 
-
-
 (*let to_input_channel inp =
   let (fin, fout) = Unix.pipe () in
     let outp = out_channel fout  in
@@ -507,6 +505,93 @@ let read_line i =
 				Buffer.contents b
 			else
 				raise No_more_input
+
+let unread_string str pos len input =
+  let limit = pos + len in
+  let curr = ref pos in
+  let restore =
+    let old_read = input.in_read in
+    let old_input = input.in_input in
+    fun () ->
+      input.in_read <- old_read;
+      input.in_input <- old_input;
+      ()
+  in
+  input.in_read <- (fun () ->
+    if !curr = limit then begin
+      restore ();
+      input.in_read ()
+    end
+    else begin
+      incr curr;
+      str.[!curr-1]
+    end);
+  input.in_input <- (fun s p l ->
+    let curr' = !curr + l in
+    if curr' < limit then begin
+      String.blit str !curr s p l;
+      curr := curr';
+      l
+    end else begin
+      let l1 = limit - !curr in
+      String.blit str !curr s p l1;
+      restore ();
+      let l2 =
+        try input.in_input s (p + l1) (l - l1)
+        (* if there is no more input on the rest,
+           we still return the bufferized part *)
+        with No_more_input -> 0 in
+      l1 + l2
+    end);
+  ()
+
+let read_line2 =
+  let buff_len = 256 in
+  let buff = String.create buff_len in
+  let b = Buffer.create buff_len in
+  fun input ->
+    let rec find_chunk first_time =
+      match
+        (* reaction on input failure depends on whether we call it
+           for the first time (means there is no input and we should
+           propagate No_more_input) or we already filled the buffer
+           at least once, which means the end of input fell just
+           at a buffer boundary, and we must catch the error and
+           send the buffer content *)
+        (try Some (input.in_input buff 0 buff_len)
+         with No_more_input when not first_time -> None)
+      with
+        | None ->
+          let result = Buffer.contents b in
+          Buffer.clear b;
+          result
+        | Some nread ->
+          let rec loop i =
+            if i = nread then None
+            else
+              if buff.[i] = '\n' then Some i
+              else loop (i + 1) in
+          match loop 0 with
+            | Some i ->
+              (* 'i+1' because we skip the newline *)
+              if i+1 < nread then begin
+                let leftover_len = nread - (i+1) in
+                unread_string buff (i+1) leftover_len input;
+              end;
+              Buffer.add_substring b buff 0 i;
+              let result = Buffer.contents b in
+              Buffer.clear b;
+              result
+            | None ->
+              if nread = 0 then
+                let result = Buffer.contents b in
+                Buffer.clear b;
+                result
+              else begin
+                Buffer.add_substring b buff 0 nread;
+                find_chunk false
+              end
+    in find_chunk true
 
 let read_ui16 i =
 	let ch1 = read_byte i in

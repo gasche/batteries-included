@@ -60,10 +60,14 @@ val pipe : unit -> input * unit output
 (** Create a pipe between an input and an ouput. Data written from
   the output can be read from the input. *)
 
+val unread_string : string -> int -> int -> input -> unit
+(** [unread_string str pos len inp] will feed [len] chars of the
+    string [str], starting at offset [pos], to the input [inp]. *)
+
 val nread : input -> int -> string
 (** [nread i n] reads a string of size up to [n] from an input.
-  The function will raise [No_more_input] if no input is available.
-  It will raise [Invalid_argument] if [n] < 0. *)
+    The function will raise [No_more_input] if no input is available.
+    It will raise [Invalid_argument] if [n] < 0. *)
 
 val really_nread : input -> int -> string
 (** [really_nread i n] reads a string of exactly [n] characters
@@ -309,6 +313,8 @@ val read_string : input -> string
 (** Read a null-terminated string. *)
 
 val read_line : input -> string
+(** Read a LF or CRLF terminated string. *)
+val read_line2 : input -> string
 (** Read a LF or CRLF terminated string. *)
 
 val write_byte : 'a output -> int -> unit
