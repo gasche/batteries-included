@@ -255,19 +255,23 @@ struct
             (monoid.combine (measure a) (measure b))
             (measure c)) v
 
-  let rec check_measures : 'a 'm. monoid:'m monoid -> measure:('a -> 'm) -> eq:('m -> 'm -> bool) -> ('a -> bool) -> ('a, 'm) fg -> bool =
-    fun ~monoid ~measure ~eq check -> function
-    | Nil -> true
-    | Single a -> check a
-    | Deep (v, pr, m, sf) ->
-      check_measures_digit ~monoid ~measure ~eq check pr &&
-      check_measures_digit ~monoid ~measure ~eq check sf &&
-      check_measures ~monoid ~measure:measure_node ~eq (fun a ->
-        check_measures_node ~monoid ~measure ~eq check a
-      ) m &&
-      eq (monoid.combine (measure_digit pr) (monoid.combine (measure_t_node ~monoid m) (measure_digit sf))) v
-
   let check_measures ~monoid ~measure ~eq t =
+    let rec check_measures : 'a 'm. monoid:'m monoid -> measure:('a -> 'm) -> eq:('m -> 'm -> bool) -> ('a -> bool) -> ('a, 'm) fg -> bool =
+      fun ~monoid ~measure ~eq check -> function
+        | Nil -> true
+        | Single a -> check a
+        | Deep (v, pr, m, sf) ->
+          check_measures_digit ~monoid ~measure ~eq check pr &&
+          check_measures_digit ~monoid ~measure ~eq check sf &&
+          (* remark on ~measure:measure_node below: We can rely on the
+             cached value in this way because the functino passed as
+             `check` argument will first verify that those cached
+             measures are indeed correct. *)
+          check_measures ~monoid ~measure:measure_node ~eq (fun a ->
+            check_measures_node ~monoid ~measure ~eq check a
+          ) m &&
+          eq (monoid.combine (measure_digit pr) (monoid.combine (measure_t_node ~monoid m) (measure_digit sf))) v
+    in
     check_measures ~monoid ~measure ~eq (fun _ -> true) t
 
   (*---------------------------------*)
