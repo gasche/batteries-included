@@ -671,22 +671,22 @@ struct
   let split_digit ~monoid ~measure p i = function
     | One (_, a) -> Split ([], a, [])
     | Two (_, a, b) ->
-      let i' = monoid.combine i (measure a) in
-      if p i' then Split ([], a, [b]) else
+      let i = monoid.combine i (measure a) in
+      if p i then Split ([], a, [b]) else
         Split ([a], b, [])
     | Three (_, a, b, c) ->
-      let i' = monoid.combine i (measure a) in
-      if p i' then Split ([], a, [b; c]) else
-        let i'' = monoid.combine i' (measure b) in
-        if p i'' then Split ([a], b, [c]) else
+      let i = monoid.combine i (measure a) in
+      if p i then Split ([], a, [b; c]) else
+        let i = monoid.combine i (measure b) in
+        if p i then Split ([a], b, [c]) else
           Split ([a; b], c, [])
     | Four (_, a, b, c, d) ->
-      let i' = monoid.combine i (measure a) in
-      if p i' then Split ([], a, [b; c; d]) else
-        let i'' = monoid.combine i' (measure b) in
-        if p i'' then Split ([a], b, [c; d]) else
-          let i''' = monoid.combine i'' (measure c) in
-          if p i''' then Split ([a; b], c, [d]) else
+      let i = monoid.combine i (measure a) in
+      if p i then Split ([], a, [b; c; d]) else
+        let i = monoid.combine i (measure b) in
+        if p i then Split ([a], b, [c; d]) else
+          let i = monoid.combine i (measure c) in
+          if p i then Split ([a; b], c, [d]) else
             Split ([a; b; c], d, [])
 
   let deep_left ~monoid ~measure pr m sf =
@@ -754,38 +754,38 @@ struct
     | One (_, a) -> monoid.zero, a
     | Two (_, a, b) ->
       let m_a = measure a in
-      let i' = monoid.combine i m_a in
-      if p i' then monoid.zero, a else m_a, b
+      let i = monoid.combine i m_a in
+      if p i then monoid.zero, a else m_a, b
     | Three (_, a, b, c) ->
       let m_a = measure a in
-      let i' = monoid.combine i m_a in
-      if p i' then monoid.zero, a else
+      let i = monoid.combine i m_a in
+      if p i then monoid.zero, a else
         let m_b = measure b in
-        let i'' = monoid.combine i' m_b in
-        if p i'' then m_a, b else monoid.combine m_a m_b, c
+        let i = monoid.combine i m_b in
+        if p i then m_a, b else monoid.combine m_a m_b, c
     | Four (_, a, b, c, d) ->
       let m_a = measure a in
-      let i' = monoid.combine i m_a in
-      if p i' then monoid.zero, a else
+      let i = monoid.combine i m_a in
+      if p i then monoid.zero, a else
         let m_b = measure b in
-        let i'' = monoid.combine i' m_b in
-        if p i'' then m_a, b else
+        let i = monoid.combine i m_b in
+        if p i then m_a, b else
           let m_c = measure c in
-          let i''' = monoid.combine i'' m_c in
-          if p i''' then monoid.combine m_a m_b, c else monoid.combine (monoid.combine m_a m_b) m_c, d
+          let i = monoid.combine i m_c in
+          if p i then monoid.combine m_a m_b, c else monoid.combine (monoid.combine m_a m_b) m_c, d
 
   let lookup_node ~monoid ~measure p i = function
     | Node2 (_, a, b) ->
       let m_a = measure a in
-      let i' = monoid.combine i m_a in
-      if p i' then monoid.zero, a else m_a, b
+      let i = monoid.combine i m_a in
+      if p i then monoid.zero, a else m_a, b
     | Node3 (_, a, b, c) ->
       let m_a = measure a in
-      let i' = monoid.combine i m_a in
-      if p i' then monoid.zero, a else
+      let i = monoid.combine i m_a in
+      if p i then monoid.zero, a else
         let m_b = measure b in
-        let i'' = monoid.combine i' m_b in
-        if p i'' then m_a, b else monoid.combine m_a m_b, c
+        let i = monoid.combine i m_b in
+        if p i then m_a, b else monoid.combine m_a m_b, c
 
   let rec lookup_tree : 'a 'm. monoid:'m monoid -> measure:('a -> 'm) -> ('m -> bool) -> 'm -> ('a, 'm) fg -> 'm * 'a =
     fun ~monoid ~measure p i -> function
