@@ -174,16 +174,32 @@ let take n l =
   (take 1 [1;2;3]) [1]
  *)
 
-let take_while p li =
-  let rec loop dst = function
-    | [] -> ()
-    | x :: xs ->
-      if p x then
-        let r = { hd = x; tl = [] } in
-        dst.tl <- inj r;
-        loop r xs in
+let rec split_while_mut p dst = function
+  | [] -> []
+  | x :: xs as li ->
+    if not (p x) then li
+    else
+      let r = { hd = x; tl = [] } in
+      dst.tl <- inj r;
+      split_while_mut p r xs
+
+let split_while p li =
   let dummy = dummy_node () in
-  loop dummy li;
+  let rest = split_while_mut p dummy li in
+  dummy.tl, rest
+
+
+(*$= split_while & ~printer:(let pli = List.print Int.print in IO.to_string <| Tuple.Tuple2.print pli pli)
+  (split_while ((=) 3) [3;3;4;3;3]) ([3;3], [4;3;3])
+  (split_while ((=) 3) [3]) ([3], [])
+  (split_while ((=) 3) [4]) ([], [4])
+  (split_while ((=) 3) []) ([], [])
+  (split_while ((=) 2) [2;2]) ([2;2], [])
+ *)
+
+let take_while p li =
+  let dummy = dummy_node () in
+  ignore(split_while_mut p dummy li);
   dummy.tl
 
 (*$= take_while & ~printer:(IO.to_string (List.print Int.print))

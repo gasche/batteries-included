@@ -424,6 +424,9 @@ val drop_while : ('a -> bool) -> 'a list -> 'a list
 (** [drop_while p xs] returns the suffix remaining after
     [takeWhile p xs]. *)
 
+val split_while : ('a -> bool) -> 'a list -> 'a list * 'a list
+(** [split_while p xs] returns [(take_while p xs, drop_while p xs)]. *)
+
 val interleave : ?first:'a -> ?last:'a -> 'a -> 'a list -> 'a list
 (** [interleave ~first ~last sep [a0;a1;a2;...;an]] returns
 [first; a0; sep; a1; sep; a2; sep; ...; sep; an] *)
