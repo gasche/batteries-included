@@ -374,8 +374,8 @@ let iter2 f a1 a2 =
   )
 *)
 (*$T iter2
-  check_invalid_arg (iter2 (fun _ _ -> ()) [|1|]) [|1;2;3|]
-  check_invalid_arg (iter2 (fun _ _ -> ()) [|1|]) [||]
+  Exn.check_invalid_arg (iter2 (fun _ _ -> ()) [|1|]) [|1;2;3|]
+  Exn.check_invalid_arg (iter2 (fun _ _ -> ()) [|1|]) [||]
 *)
 
 let iter2i f a1 a2 =
@@ -396,8 +396,8 @@ let iter2i f a1 a2 =
   )
 *)
 (*$T iter2i
-  check_invalid_arg (iter2i (fun _ _ _ -> ()) [|1|]) [|1;2;3|]
-  check_invalid_arg (iter2i (fun _ _ _ -> ()) [|1|]) [||]
+  Exn.check_invalid_arg (iter2i (fun _ _ _ -> ()) [|1|]) [|1;2;3|]
+  Exn.check_invalid_arg (iter2i (fun _ _ _ -> ()) [|1|]) [||]
 *)
 
 let for_all2 p xs ys =
@@ -414,8 +414,8 @@ let for_all2 p xs ys =
    for_all2 (=) [|1;2;3|] [|3;2;1|] = false
    for_all2 (=) [|1;2;3|] [|1;2;3|]
    for_all2 (<>) [|1;2;3|] [|3;2;1|] = false
-   check_invalid_arg (for_all2 (=) [|1;2;3|]) [|1;2;3;4|]
-   check_invalid_arg (for_all2 (=) [|1;2|]) [||]
+   Exn.check_invalid_arg (for_all2 (=) [|1;2;3|]) [|1;2;3;4|]
+   Exn.check_invalid_arg (for_all2 (=) [|1;2|]) [||]
 *)
 
 let exists2 p xs ys =
@@ -431,7 +431,7 @@ let exists2 p xs ys =
 (*$T exists2
    exists2 (=) [|1;2;3|] [|3;2;1|]
    exists2 (<>) [|1;2;3|] [|1;2;3|] = false
-   check_invalid_arg (exists2 (=) [|1;2|]) [|3|]
+   Exn.check_invalid_arg (exists2 (=) [|1;2|]) [|3|]
 *)
 
 let map2 f xs ys =
@@ -442,8 +442,8 @@ let map2 f xs ys =
 (*$T map2
    map2 (-) [|1;2;3|] [|6;3;1|] = [|-5;-1;2|]
    map2 (-) [|2;4;6|] [|1;2;3|] = [|1;2;3|]
-   check_invalid_arg (map2 (-) [|2;4|]) [|1;2;3|]
-   check_invalid_arg (map2 (-) [|2;4|]) [|3|]
+   Exn.check_invalid_arg (map2 (-) [|2;4|]) [|1;2;3|]
+   Exn.check_invalid_arg (map2 (-) [|2;4|]) [|3|]
 *)
 
 let compare cmp a b =
@@ -511,7 +511,7 @@ let reduce f a =
 (*$T reduce
    reduce (+) [|1;2;3|] = 6
    reduce (fun _ -> assert false) [|1|] = 1
-   check_invalid_arg (reduce (fun _ _ -> ())) [||]
+   Exn.check_invalid_arg (reduce (fun _ _ -> ())) [||]
 *)
 
 let min a = reduce Pervasives.min a
@@ -565,8 +565,8 @@ let insert xs x i =
    insert [|1;2;3|] 4 0 = [|4;1;2;3|]
    insert [|1;2;3|] 4 3 = [|1;2;3;4|]
    insert [|1;2;3|] 4 2 = [|1;2;4;3|]
-   check_invalid_arg (insert [|1;2;3|] 4) 100
-   check_invalid_arg (insert [|1;2;3|] 4) (-40)
+   Exn.check_invalid_arg (insert [|1;2;3|] 4) 100
+   Exn.check_invalid_arg (insert [|1;2;3|] 4) (-40)
 *)
 
 

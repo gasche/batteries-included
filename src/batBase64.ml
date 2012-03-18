@@ -126,7 +126,7 @@ let str_decode ?(tbl=inv_chars) s =
   (Q.string) (fun s -> let e = str_encode s in e = str_encode (str_decode e))
  *)
 
-(*${ let check_invalid_table f = check_exn ((=) Invalid_table) f }*)
+(*${ let check_invalid_table f = Exn.check ((=) Invalid_table) f }*)
 
 (*$T make_decoding_table
   check_invalid_table make_decoding_table [|'1'|]

@@ -177,17 +177,20 @@ let extract_from pathin = Lexing.(
 )
 
 (** Generate the test suite from files list on currently selected output *)
+let use_default_preamble = ref true
+
 let generate paths =
   eps "Extraction : "; List.iter extract_from paths;
   out "let ___tests = ref []\nlet ___add test = ___tests := test::!___tests\n";
-  out hard_coded_preamble;
+  if !use_default_preamble then
+    out default_preamble;
   out (Buffer.contents global_preamble);
   listiteri process (preprocess @@ List.rev !suite);
   out "let () = ignore (Runner.run (\"\" >::: !___tests))\n";
   eps "Done.\n"
 
 (** Parse command line *)
-let add_preamble code =
+let add_preamble_string code =
   Buffer.add_string global_preamble code;
   Buffer.add_string global_preamble "\n";
   ()
@@ -201,17 +204,20 @@ let set_output path =
 
 let options = [
 (* the careful spacing here preserves a good-looking alignment in -help output *)
-"-p", Arg.String add_preamble, "";
-"--preamble", Arg.String add_preamble, 
-            "<string>  Add code to the tests preamble; typically this will be
-                       an instruction of the form 'open Module;;'";
-"--preamble-file", Arg.String add_preamble_file,
-                 "<path>  Add the content from the given file 
-                          to the tests preamble.";
 "-o", Arg.String set_output, "";
 "--output", Arg.String set_output,
           "<path>  Open or create a file for output; the resulting file
-                   will be an OCaml source file containing all the tests."
+                   will be an OCaml source file containing all the tests.";
+"--preamble-string", Arg.String add_preamble_string, 
+            "<string>  Add code to the tests preamble; typically this will be
+                       an instruction of the form 'open Module;;'";
+"-p", Arg.String add_preamble_file, "";
+"--preamble", Arg.String add_preamble_file,
+                 "<path>  Add the content from the given file  
+                          to the tests preamble.";
+"--no-default-preamble", Arg.Clear use_default_preamble,
+                      " Do not include the default preamble:
+                          open OUnit;; module Q = Quickcheck";
 ]
 
 let usage_msg =
