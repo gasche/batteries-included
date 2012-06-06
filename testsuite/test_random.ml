@@ -16,6 +16,12 @@ let test_enum_helper reset create modify =
   let b = make 10 in
   let () = assert_equal_arrays a b in
 
+  (* Enumerations constructed consecutively should be different *)
+  let () = reset () in
+  let a = make 10 in
+  let b = make 10 in
+  let () = assert_bool "not the same array" (a <> b) in
+
   (* The states should be shared: if the state is modified then the second
      stream should be different. *)
   let () = reset () in
@@ -28,10 +34,10 @@ let test_enum_helper reset create modify =
   (* Cloning should work even if the RNG state is changing. *)
   let e = create () in
   let e_clone = BatEnum.clone e in
+  let array = take_array 10 e in
   let () = modify () in
-    assert_equal_arrays
-      (take_array 10 e)
-      (take_array 10 e_clone)
+  let array_clone = take_array 10 e_clone in
+  assert_equal_arrays array array_clone
 
 (* Wrapper that assures that [cmd] does not modify the default state. *)
 let with_saved_state cmd =
