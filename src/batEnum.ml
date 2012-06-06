@@ -884,6 +884,22 @@ let group_by eq e =
     |> List.map List.of_enum = [[1];[2];[3;5];[6];[7;9];[10;4];[5]]
 *)
 
+(* The raw test above is a regression test against a subtle bug spotted
+   by Philippe Veber; [group] should behave correctly wrt. [clone],
+   but to clone an enum of enum one need to "deep-clone" it by cloning
+   both the result enumeration and each of the enum groups.
+*)
+
+(*$R group; clone
+  let e1 = group (fun x -> x) <| List.enum [1; 2; 3] in
+  let e2 = map clone (clone e1) in
+  let correct_result e =
+    List.(of_enum e |> map of_enum) = [[1]; [2]; [3]] in
+  assert_bool "cloned_group_by_is_correct" (correct_result e2);
+  assert_bool "original_group_by_is_correct" (correct_result e1);
+  ()
+*)
+
 let clump clump_size add get e = (* convert a uchar enum into a ustring enum *)
   let next () =
     match peek e with
