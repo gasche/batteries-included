@@ -152,16 +152,179 @@ let test_from_loop () =
   assert_equal ~printer:string_of_int 10 nb_res ;
   assert_equal ~printer:string_of_int 6 !nb_calls
 
+
+(* A custom test fuzzer for BatEnum.clone
+
+   Here is an informal specification of "clone": if you have
+   a *deterministic* function f() which produces a "fresh"
+   enumeration, unrelated to any pre-existing mutable state in your
+   application or delayed computation, then, for any processing
+   function P(e1, e2) that takes two enumerations to produce a result,
+   then `P(f(),f())` and `let e1 = f () in P(e1, clone e1)` should
+   always produce the same result.
+
+   This "test_clone_resilience" function does exactly that: it uses
+   random fuzzing to generate a lot of functions P of the form "do
+   some stuff, then pick an element in one of the enumerations at
+   random", and test it once with two fresh enumerations, and once for
+   a third fresh enumeration and its clone.
+
+   It is parametrized by several aspects, such as what the "do some
+   stuff" part means: if you're trying to clone an enumeration reading
+   from a data stream, you may want to try reading some of the data
+   yourself in the middle of picking elements from the operation. The
+   cloning function itself is parametrized, because functions
+   producing "enumerations of enumerations" must be cloned at the two
+   levels (map clone -| clone). Finally, "strict" is used to map the
+   elements of the observed enumerations to strict, comparable and
+   marshallable structures (eg. enumerations of integers are turned
+   into lists of integers).
+
+   The code will probably evolve as we try to capture more behavior
+   (eg. being able to do some stuff of the picked elements themselves)
+   and test more functions. We currently were able to re-discover the
+   bug in "group" that we already knew about (reported by
+   Philippe Veber), and discover an unknown bug in "scan".
+*)
+type ('a, 'b) clone_test = {
+  clone_fun : 'a BatEnum.t -> 'a BatEnum.t;
+  effects : (unit -> unit) array;
+  nb_iter : int;
+  depth : int;
+  strict : 'a -> 'b;
+  printer : ('b, string) BatIO.printer option;
+}
+
+let default = { 
+  clone_fun = BatEnum.clone;
+  effects = [| |];
+  nb_iter = 1000;
+  depth = 10;
+  strict = (fun x -> x);
+  printer = Some BatInt.print;
+}
+
+let test_clone_resilience ~input_msg producer test =
+  let testing_plan () =
+    let rev_tests = ref [] in
+    let nb_effects = Array.length test.effects in
+    for _i = 1 to test.depth do
+      let action =
+        let acc = ref [] in
+        while nb_effects > 0 && Random.bool () do
+          acc := test.effects.(BatRandom.int nb_effects) :: !acc;
+        done;
+        let acc = List.rev !acc in
+        fun () ->
+          List.iter (fun eff -> eff ()) acc
+      in
+      let e1_or_e2 = Random.bool () in
+      rev_tests := (action, e1_or_e2) :: !rev_tests
+    done;
+    List.rev !rev_tests
+  in
+  let run_plan plan e1 e2 =
+    let rev_elems = ref [] in
+    let run_test (action, e1_or_e2) =
+      let () = action () in
+      let elem = BatEnum.get_exn (if e1_or_e2 then e1 else e2) in
+      rev_elems := (e1_or_e2, elem) :: !rev_elems
+    in
+    let reached_end =
+      try List.iter run_test plan; false
+      with BatEnum.No_more_elements -> true
+    in
+    (List.rev_map (BatTuple.Tuple2.map2 test.strict) !rev_elems, reached_end)
+  in    
+  for i = 1 to test.nb_iter do
+    let plan = testing_plan () in
+    let (elems1, end1) =
+      let e1 = producer () in
+      let e2 = producer () in
+      run_plan plan e1 e2 in
+    let (elems2, end2) =
+      let e1 = producer () in
+      let e2 = test.clone_fun e1 in
+      let switch = BatRandom.bool () in
+      let e1, e2 = if switch then e2, e1 else e1, e2 in
+      run_plan plan e1 e2 in
+    let printer = match test.printer with
+      | None -> None
+      | Some p ->
+        Some (BatIO.to_string
+                (BatList.print
+                   (BatTuple.Tuple2.print BatBool.print p)))
+    in 
+    let msg = match input_msg with
+      | None -> None
+      | Some inp -> Some (Printf.sprintf "input (%d): %s" i inp) in
+    assert_equal ?msg ?printer elems1 elems2;
+    assert_equal end1 end2;
+  done
+
+(* common input values *)
+let input =
+  Array.init 10 (fun _ -> Random.int 10)
+let input_msg =
+  Some (BatIO.to_string (BatArray.print BatInt.print) input)
+
+let test_clone_scan () =
+  let enum () = BatEnum.scan (+) (BatArray.enum input) in
+  test_clone_resilience ~input_msg enum default
+
+let test_clone_take () =
+  let enum () = BatEnum.take 3 (BatArray.enum input) in
+  test_clone_resilience ~input_msg enum default
+
+let test_clone_skip () =
+  let enum () = BatEnum.skip 3 (BatArray.enum input) in
+  test_clone_resilience ~input_msg enum default
+
+let test_clone_take_while () =
+  let enum () = BatEnum.take_while (fun n -> n < 5) (BatArray.enum input) in
+  test_clone_resilience ~input_msg enum default
+
+let test_clone_drop_while () =
+  let enum () = BatEnum.drop_while (fun n -> n < 5) (BatArray.enum input) in
+  test_clone_resilience ~input_msg enum default
+
+(* tests for [span] and [break] are missing, because I'm not sure how
+   to test them well *)
+
+let test_clone_group () =
+  let enum () = BatEnum.group (fun n -> n mod 2) (BatArray.enum input) in
+  test_clone_resilience ~input_msg enum { default with
+    clone_fun = BatEnum.(map clone -| clone);
+    strict = BatList.of_enum;
+    printer = Some (BatList.print BatInt.print);
+  }
+
+let test_clone_clump () =
+  let input = Array.init 100 (fun _ -> Random.int 10) in
+  let enum () =
+    let acc = ref 0 in
+    BatEnum.clump 9
+      (fun n -> acc := !acc + n)
+      (fun () -> let v = !acc in acc := 0; v)
+      (BatArray.enum input) in
+  test_clone_resilience enum default 
+
 let tests = "BatEnum" >::: [
   "Array" >:: test_array_enums;
   "List" >:: test_list_enums;
   "String" >:: test_string_enums;
-(*  "Rope" >:: test_rope_enums;
-  "UTF8" >:: test_UTF8_enums; *)
+  (*  "Rope" >:: test_rope_enums;
+      "UTF8" >:: test_UTF8_enums; *)
   "bigarray" >:: test_bigarray_enums;
   "Set" >:: test_set_enums;
   "uncombine" >:: test_uncombine;
   "from" >:: test_from;
   "from_while" >:: test_from_while;
   "from_loop" >:: test_from_loop;
+  "clone_scan" >:: test_clone_scan;
+  "clone_take" >:: test_clone_take;
+  "clone_skip" >:: test_clone_skip;
+  "clone_take_while" >:: test_clone_take_while;
+  "clone_drop_while" >:: test_clone_drop_while;
+  "clone_group" >:: test_clone_group;
 ]
