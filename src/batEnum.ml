@@ -208,7 +208,39 @@ let get t =
 
 let get_exn t = t.next ()
 
+(* If we want to keep some mental sanity while maintaining 'Enum'
+   code, it is important that the fields of an enum be considered
+   immutable: the *state* of an enumeration will change during its
+   life, but its *implementation* should not, or only to be replaced
+   by an observationally-equivalent one.
+
+   'push' is the only function in batEnum that violates, by design,
+   this implicit contract. In the long term, it should be deprecated;
+   in the meantime, we should be extra careful. There was a nasty bug
+   in the push/from combination: create an enumeration with 'from'
+   (you get "e1"), 'push' it something (mutates e1), and 'clone' the
+   result (to get "e2"). e1 doesn't work anymore! It seemingly
+   "forgot" the push operation.
+
+   The reason for this bug is that 'clone' may update the enum
+   fields/methods/implementation in a way that keeps it
+   observationally equivalent with the stream 'clone' is implemented
+   to clone, that is... the result of 'from' (e1, before pushing). The
+   implementation of 'push' will change this implementation, but if it
+   laters call the original 'clone' function, this will restore the
+   previous behaviour of e1! Welcome to the BatEnum madhouse.
+
+   Our current fix is to call "clone" as soon as "push" is invoked,
+   before updating the argument's implementation. This is very bad
+   performance-wise (this is what you pay for being ugly), but at
+   least it's correct. An "optimal" implementation would do things
+   differently: to clone "push e1 x", it would create an enumeration
+   e2 that does not call e1.clone () as soon as e2.clone () is called,
+   but only after the first element of e2.clone () (which we know will
+   be x) has been consuming. We've not yet been able to implement this.
+*)
 let push t e =
+        let tc = t.clone () in
 	let rec make t =
 		let fnext = t.next in
 		let fcount = t.count in
@@ -224,7 +256,6 @@ let push t e =
 			let n = fcount() in
 			if !next_called then n else n+1);
 		t.clone <- (fun () ->
-			let tc = fclone() in
 			if not !next_called then make tc;
 			tc);
 	in
