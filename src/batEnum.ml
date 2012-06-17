@@ -151,32 +151,70 @@ module MicroLazyList = struct
 end
 
 let from f =
-  let e = {
+  (* A tricky aspect of the "from" function is that it provides an
+     enum implementation that will, at some later point in time
+     (eg. when 'clone' is changed), change its own implementation --
+     by mutating the .next, .count and .clone field.
+     
+     Previously, this bound-to-be-mutated-later enum was returned
+     directly. This created strange interferences with other
+     enum-mutating functions such as "push" (calling 'clone' on
+     a pushed enum would undo the push, because the implementation
+     would be mutated back to the original "from"-produced
+     enumeration, cloned).
+     
+     To avoid this subtle bugs, we use a "proxy" approach: the
+     enumeration whose implementation change is only internal, and is
+     never accessed (and possibly mutated) directly by the
+     user. Instead we return an "external" enum whose implementations
+     just forward all calls to the internal enum, and are themselves
+     immutable. The user may force or push this external enum without,
+     hopefully, risking any interference with implementation changes
+     of the internal enum.
+
+     This proxying layer has a slight performance cost: on a very
+     specialized microbenchmark, we observed that dropping 100_000_000
+     elements of the (BatEnum.from (fun () -> ())) enumeration take
+     about 4.80s with the proxying layer, against 4.65s without. The
+     other way to fix the inference issues did not change 'from', but
+     significantly degraded the performance of 'push', and was much
+     more fragile (we had no guarantee that no function other than
+     'push' could be affected by those interferences).
+  *)
+  let internal_e = {
     next = _dummy;
     count = _dummy;
     clone = _dummy;
     fast = false;
   } in
-    e.next  <- (fun () -> try f () with No_more_elements -> close e ; raise No_more_elements);
-    e.count <- (fun () -> force e; e.count());
-    e.clone <- (fun () ->
+    internal_e.next  <- (fun () ->
+      try f () with No_more_elements ->
+        close internal_e ; raise No_more_elements);
+    internal_e.count <- (fun () -> force internal_e; internal_e.count());
+    internal_e.clone <- (fun () ->
 		  let e' =  MicroLazyList.enum(MicroLazyList.from f) in
-		    e.next <- e'.next;
-		    e.clone<- e'.clone;
-		    e.count<- (fun () -> force e; e.count());
+		    internal_e.next <- e'.next;
+		    internal_e.clone<- e'.clone;
+		    internal_e.count<- (fun () ->
+                      force internal_e; internal_e.count());
                     (* we can't use [e'.count] because that would force [e'],
                        which doesn't update [e].  That would for example,
-                       cause e.fast to not be updated to true.  A simple test
+                       cause internal_e.fast to not be updated to true.  A simple test
                        to see the problem with [e'.count] is to do the
                        following: (1) create a enum using this [from]
                        function, (2) clone that enum, (3) grab the count of
                        the original enum and then iterate over it.  A
                        discrepancy between the count and the elements will
                        result. *)
-		    e.fast <- e'.fast;
-	            e.clone () );
-    e
-
+		    internal_e.fast <- e'.fast;
+	            internal_e.clone () );
+    let external_e = {
+      next = (fun () -> internal_e.next ());
+      count = (fun () -> internal_e.count ());
+      clone = (fun () -> internal_e.clone ());
+      fast = internal_e.fast;
+    } in
+    external_e
 
 let from2 next clone =
   let e = {
@@ -208,39 +246,7 @@ let get t =
 
 let get_exn t = t.next ()
 
-(* If we want to keep some mental sanity while maintaining 'Enum'
-   code, it is important that the fields of an enum be considered
-   immutable: the *state* of an enumeration will change during its
-   life, but its *implementation* should not, or only to be replaced
-   by an observationally-equivalent one.
-
-   'push' is the only function in batEnum that violates, by design,
-   this implicit contract. In the long term, it should be deprecated;
-   in the meantime, we should be extra careful. There was a nasty bug
-   in the push/from combination: create an enumeration with 'from'
-   (you get "e1"), 'push' it something (mutates e1), and 'clone' the
-   result (to get "e2"). e1 doesn't work anymore! It seemingly
-   "forgot" the push operation.
-
-   The reason for this bug is that 'clone' may update the enum
-   fields/methods/implementation in a way that keeps it
-   observationally equivalent with the stream 'clone' is implemented
-   to clone, that is... the result of 'from' (e1, before pushing). The
-   implementation of 'push' will change this implementation, but if it
-   laters call the original 'clone' function, this will restore the
-   previous behaviour of e1! Welcome to the BatEnum madhouse.
-
-   Our current fix is to call "clone" as soon as "push" is invoked,
-   before updating the argument's implementation. This is very bad
-   performance-wise (this is what you pay for being ugly), but at
-   least it's correct. An "optimal" implementation would do things
-   differently: to clone "push e1 x", it would create an enumeration
-   e2 that does not call e1.clone () as soon as e2.clone () is called,
-   but only after the first element of e2.clone () (which we know will
-   be x) has been consuming. We've not yet been able to implement this.
-*)
 let push t e =
-        let tc = t.clone () in
 	let rec make t =
 		let fnext = t.next in
 		let fcount = t.count in
@@ -256,6 +262,7 @@ let push t e =
 			let n = fcount() in
 			if !next_called then n else n+1);
 		t.clone <- (fun () ->
+			let tc = fclone () in
 			if not !next_called then make tc;
 			tc);
 	in
