@@ -322,5 +322,7 @@ val unsafe_set : 'a t -> int -> 'a -> unit
 val print :  ?first:string -> ?last:string -> ?sep:string -> ('a BatInnerIO.output -> 'b -> unit) -> 'a BatInnerIO.output -> 'b t -> unit
 
 (**/**)
+val create_with : resizer_t -> 'a t
 val invariants : _ t -> unit
+val bool_invariants : _ t -> bool
   (**/**)
