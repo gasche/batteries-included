@@ -185,23 +185,38 @@ let is_empty h = length h = 0
 
 let modify_opt key f h =
   let hc = h_conv h in
+  (* If we need to add or remove an element, we prefer not to do it on
+     the spot, but rather to call the existing 'remove' and 'add'
+     functions which carry the necessary resizing logic.
+
+     So if we determine that the hashtable size needs to change
+     (instead of just replacing one present binding by another), we
+     raise the Exit exception to get out of the bucket-traversing
+     loop, using "change" as a side channel to transmit the action to
+     be performed (None, remove the key, Some v, add v) *)
+  let change = ref None in
   let rec loop = function
     | Empty ->
       (match f None with
        | None    -> Empty
-       | Some v' -> hc.size <- succ hc.size;
-         Cons(key,v',Empty))
+       | Some _ as add_val ->
+         change := add_val; raise Exit)
     | Cons(k,v,next) ->
       if k = key then (
         match f (Some v) with
         | Some v' -> Cons(k,v',next)
-        | None    -> hc.size <- pred hc.size;
-          next
+        | None -> raise Exit
       ) else
         Cons(k,v,loop next)
   in
   let pos = (hash key) mod (Array.length hc.data) in
-  Array.unsafe_set hc.data pos (loop (Array.unsafe_get hc.data pos))
+  try
+    let new_bucket = loop (Array.unsafe_get hc.data pos) in
+    Array.unsafe_set hc.data pos new_bucket
+  with Exit ->
+    match !change with
+      | None -> remove h key
+      | Some v' -> replace h key v'
 
 (*$T modify_opt
   let h = create 3 in \
@@ -239,9 +254,7 @@ let modify key f h =
 let modify_def v0 key f h =
   let hc = h_conv h in
   let rec loop = function
-    | Empty ->
-      hc.size <- succ hc.size;
-      Cons(key,f v0,Empty)
+    | Empty -> raise Exit
     | Cons(k,v,next) ->
       if k = key then (
         Cons(k,f v,next)
@@ -249,7 +262,11 @@ let modify_def v0 key f h =
         Cons(k,v,loop next)
   in
   let pos = (hash key) mod (Array.length hc.data) in
-  Array.unsafe_set hc.data pos (loop (Array.unsafe_get hc.data pos))
+  try
+    let new_bucket = loop (Array.unsafe_get hc.data pos) in
+    Array.unsafe_set hc.data pos new_bucket
+  with Exit ->
+    add h key (f v0)
 
 (*$T modify_def
   let h = create 3 in \
