@@ -1,6 +1,31 @@
 Changelog
 ---------
 
+## v2.2.1
+
+- improved test coverage
+  (Simon Cruanes and Xavier Van de Woestyne)
+- Enum: bugfix in clamp
+  (Simon Cruanes)
+- List: fix a stack-overflow bug in transpose
+  (Gabriel Scherer)
+- Substring : fix fold_left
+- Hashtbl: make modify_opt/def resize the table to preserve amortized costs
+  (Mads Hartmann, report by user 'jj-issuu')
+- Enum: fix combine's count in presence of infinite enums
+  (Gabriel Scherer, report by user 'mwnx')
+- Makefile: add a qtest-byte target
+  (Gabriel Scherer)
+- Printf: CamlinternalPr for OCaml versions >= 4.02
+  (Ralf Vogler)
+
+Note: this version builds with OCaml 4.02 and can be used to compile
+batteries-using software, but being a bugfix release it does not cover
+the new functions added in the 4.02 compiler library. This means that
+Batteries 2.2.1 is a strict extension of the 4.01 compiler library
+(and older versions), but does not include all of 4.02 compiler
+library. A new minor release (2.3.0) should fix this discrepancy.
+
 ## v2.2.0
 
 - cartesian product in batSet
