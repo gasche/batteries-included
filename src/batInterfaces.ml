@@ -34,3 +34,4 @@ module type Monad = sig
   val bind : 'a m -> ('a -> 'b m) -> 'b m
   val return: 'a -> 'a m
 end
+

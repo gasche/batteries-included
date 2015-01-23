@@ -156,6 +156,7 @@ module Concurrent = BatConcurrent
 
 (* Batteries Specific *)
 module Interfaces = BatInterfaces
+module Monad = BatMonad
 module Number = BatNumber
 module Float = BatFloat
 module Int = BatInt

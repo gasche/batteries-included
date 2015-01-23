@@ -37,6 +37,8 @@ let print print_val oc = function
 
 
 module Monad = struct
+  type ('a, 'b) m = ('a, 'b) t
+
   let bind m k = match m with
     | Ok  x      -> k x
     | Bad _ as e -> e

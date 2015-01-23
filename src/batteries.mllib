@@ -28,6 +28,7 @@ BatInnerPervasives
   BatList
   BatMap
   BatMarshal
+  BatMonad
   BatNativeint
   BatNum
   BatOo

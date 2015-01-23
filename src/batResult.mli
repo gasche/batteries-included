@@ -70,24 +70,16 @@ val to_option: ('a, _) t -> 'a option
 
 (** This monad is very similar to the option monad, but instead of
     being [None] when an error occurs, the first error in the sequence is
-    preserved as the return value. *)
-
-module Monad : sig
-
-  (** Monadic composition.
-
-      [bind r f] proceeds as [f x] if [r] is [Ok x], or returns [r] if
-      [r] is an error.
-      @since 2.0
-  *)
-  val bind:    ('a, 'b) t -> ('a -> ('c, 'b) t) -> ('c, 'b) t
-
-  (** as [bind] *)
-  val ( >>= ): ('a, 'b) t -> ('a -> ('c, 'b) t) -> ('c, 'b) t
-
-  (** Monadic return, just encapsulates the given value with Ok *)
-  val return : 'a -> ('a, _) t
-end
+    preserved as the return value.
+ 
+    This monad is parameteric over the exception type:
+    {!BatMonad.Monad1} is the monad interface with one extra
+    parameter. It does not exactly coincide with the standard
+    {!BatInterfaces.Monad} signature. See the documentation of the
+    {!BatMonad} module to convert from the first to the second
+    signature.
+ *)
+module Monad : BatMonad.Monad1 with type ('a, 'p1) m = ('a, 'p1) t
 
 (** {6 Infix} *)
 
