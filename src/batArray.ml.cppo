@@ -26,14 +26,15 @@ type 'a mappable = 'a t
 
 include Array
 
-##V<4.2##let create_float n = make n 0.
-##V<4.2##let make_float = create_float
-
-##V=4.2##external make_float: int -> float array = "caml_make_float_vect"
-##V=4.2##external create_float: int -> float array = "caml_make_float_vect"
-
-##V>=4.3##external create_float: int -> float array = "caml_make_float_vect"
-##V>=4.3##let make_float = create_float
+(* added in legacy Array in 4.02 *)
+#if OCAML_VERSION < (4, 2)
+let make_float n = make n 0.
+#elif OCAML_MAJOR < (4, 3)
+external make_float: int -> float array = "caml_make_float_vect"
+#elif OCAML_MAJOR >= (4, 3)
+external create_float: int -> float array = "caml_make_float_vect"
+let make_float : int -> float array = create_float
+#endif
 
 let singleton x = [|x|]
 (*$Q singleton
@@ -796,9 +797,11 @@ struct
   external make       : int -> 'a -> ('a, _) t                  = "caml_make_vect"
   external create     : int -> 'a -> ('a, _) t                  = "caml_make_vect"
 
-
-##V>=4.2##  external make_float: int -> (float, _) t = "caml_make_float_vect"
-##V<4.2##  let make_float n = make n 0.
+#if OCAML_VERSION < (4, 2)
+  let make_float n = make n 0.
+#else
+  external make_float: int -> (float, _) t = "caml_make_float_vect"
+#endif
 
   let init         = init
   let make_matrix  = make_matrix

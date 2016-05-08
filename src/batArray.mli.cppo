@@ -82,19 +82,20 @@ external make : int -> 'a -> 'a array = "caml_make_vect"
     If the value of [x] is a floating-point number, then the maximum
     size is only [Sys.max_array_length / 2].*)
 
-##V<4.2##val create_float: int -> float array
-##V<4.2##val make_float: int -> float array
 
-##V=4.2##external make_float: int -> float array = "caml_make_float_vect"
-##V=4.2##val create_float: int -> float array
-
-##V>=4.3##external create_float: int -> float array = "caml_make_float_vect"
-##V>=4.3##val make_float: int -> float array
+#if OCAML_VERSION < (4, 2)
+val make_float : int -> float array
+#elif OCAML_VERSION < (4, 3)
+external make_float : int -> float array = "caml_make_float_vect"
 (** [Array.make_float n] returns a fresh float array of length [n],
-   with uninitialized data.
+    with uninitialized data.
 
-   @since 2.3.0
-*)
+    @since 2.3.0 and OCaml 4.2.0
+ *)
+#elif OCAML_VERSION >= (4, 3)
+external create_float: int -> float array = "caml_make_float_vect"
+val make_float : int -> float array
+#endif
 
 external create : int -> 'a -> 'a array = "caml_make_vect"
 (** @deprecated [Array.create] is an alias for {!Array.make}. *)
@@ -638,12 +639,15 @@ sig
   external make : int -> 'a -> ('a, _) t = "caml_make_vect"
   external create : int -> 'a -> ('a, _) t = "caml_make_vect"
 
-##V<4.2##  val make_float : int -> (float, _) t
-##V>=4.2##  external make_float : int -> (float, _) t = "caml_make_float_vect"
+#if OCAML_VERSION < (4, 2)
+   val make_float : int -> (float, _) t
+#else
+  external make_float : int -> (float, _) t = "caml_make_float_vect"
+#endif
 (** [Array.make_float n] returns a fresh float array of length [n],
     with uninitialized data.
 
-    @since 2.3.0 and OCaml 4.2.0
+    @since 2.3.0
  *)
 
   external of_array  : 'a array -> ('a, _ ) t = "%identity"
