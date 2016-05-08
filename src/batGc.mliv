@@ -153,6 +153,13 @@ type control = Gc.control =
         first-fit policy, which can be slower in some cases but
         can be better for programs with fragmentation problems.
         Default: 0. @since 3.11.0 *)
+
+##V>=4.3##    window_size : int;
+##V>=4.3##    (** The size of the window used by the major GC for smoothing
+##V>=4.3##        out variations in its workload. This is an integer between
+##V>=4.3##        1 and 50.
+##V>=4.3##        Default: 1. @since NEXT_RELEASE and OCaml 4.03.0 *)
+##V>=4.3##
   }
 (** The GC parameters are given as a [control] record.  Note that
     these parameters can also be initialised by setting the
