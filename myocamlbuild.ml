@@ -31,7 +31,7 @@ let src_bat_ml =
     ) l in
   List.map (fun filename -> Pathname.concat "src" filename) l
 
-let _ = dispatch begin function
+let local_dispatcher = function
   | Before_options ->
       (* Set up to use ocamlfind *)
       Options.ocamlc     := ocamlfind "ocamlc";
@@ -221,4 +221,8 @@ let _ = dispatch begin function
            A"-colorize-code"]);
 
   | _ -> ()
+
+let () = dispatch begin fun hook ->
+  Ocamlbuild_cppo.dispatcher hook;
+  local_dispatcher hook;
 end

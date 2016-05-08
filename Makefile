@@ -14,7 +14,7 @@ BROWSER_COMMAND ?= x-www-browser
 export BROWSER_COMMAND
 
 OCAMLBUILD ?= ocamlbuild
-OCAMLBUILDFLAGS ?= -no-links -use-ocamlfind
+OCAMLBUILDFLAGS ?= -no-links -use-ocamlfind -plugin-tag "package(cppo_ocamlbuild)"
 
 ifeq ($(uname_S),Darwin)
   BATTERIES_NATIVE ?= yes
