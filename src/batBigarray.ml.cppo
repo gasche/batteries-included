@@ -30,53 +30,85 @@ module A = struct include BatArray include BatArray.Labels end
    because of the somewhat strange interpretation of strengthening in (module type of),
    we need to explicitly equate each type with its constructor *)
 type float32_elt = Bigarray.float32_elt
-##V>=4.2## = Float32_elt
+#if OCAML_VERSION >= (4,2)
+  = Float32_elt
+#endif
 type float64_elt = Bigarray.float64_elt
-##V>=4.2## = Float64_elt
+#if OCAML_VERSION >= (4,2)
+  = Float64_elt
+#endif
 type complex32_elt = Bigarray.complex32_elt
-##V>=4.2## = Complex32_elt
+#if OCAML_VERSION >= (4,2)
+ = Complex32_elt
+#endif
 type complex64_elt = Bigarray.complex64_elt
-##V>=4.2## = Complex64_elt
+#if OCAML_VERSION >= (4,2)
+ = Complex64_elt
+#endif
 type int8_signed_elt = Bigarray.int8_signed_elt
-##V>=4.2## = Int8_signed_elt
+#if OCAML_VERSION >= (4,2)
+ = Int8_signed_elt
+#endif
 type int8_unsigned_elt = Bigarray.int8_unsigned_elt
-##V>=4.2## = Int8_unsigned_elt
+#if OCAML_VERSION >= (4,2)
+ = Int8_unsigned_elt
+#endif
 type int16_signed_elt = Bigarray.int16_signed_elt
-##V>=4.2## = Int16_signed_elt
+#if OCAML_VERSION >= (4,2)
+ = Int16_signed_elt
+#endif
 type int16_unsigned_elt = Bigarray.int16_unsigned_elt
-##V>=4.2## = Int16_unsigned_elt
+#if OCAML_VERSION >= (4,2)
+ = Int16_unsigned_elt
+#endif
 type int_elt = Bigarray.int_elt
-##V>=4.2## = Int_elt
+#if OCAML_VERSION >= (4,2)
+ = Int_elt
+#endif
 type int32_elt = Bigarray.int32_elt
-##V>=4.2## = Int32_elt
+#if OCAML_VERSION >= (4,2)
+ = Int32_elt
+#endif
 type int64_elt = Bigarray.int64_elt
-##V>=4.2## = Int64_elt
+#if OCAML_VERSION >= (4,2)
+ = Int64_elt
+#endif
 type nativeint_elt = Bigarray.nativeint_elt
-##V>=4.2## = Nativeint_elt
+#if OCAML_VERSION >= (4,2)
+ = Nativeint_elt
+#endif
 
 type ('a, 'b) kind = ('a,'b) Bigarray.kind
-##V>=4.2##           = Float32 : (float, float32_elt) kind
-##V>=4.2##           | Float64 : (float, float64_elt) kind
-##V>=4.2##           | Int8_signed : (int, int8_signed_elt) kind
-##V>=4.2##           | Int8_unsigned : (int, int8_unsigned_elt) kind
-##V>=4.2##           | Int16_signed : (int, int16_signed_elt) kind
-##V>=4.2##           | Int16_unsigned : (int, int16_unsigned_elt) kind
-##V>=4.2##           | Int32 : (int32, int32_elt) kind
-##V>=4.2##           | Int64 : (int64, int64_elt) kind
-##V>=4.2##           | Int : (int, int_elt) kind
-##V>=4.2##           | Nativeint : (nativeint, nativeint_elt) kind
-##V>=4.2##           | Complex32 : (Complex.t, complex32_elt) kind
-##V>=4.2##           | Complex64 : (Complex.t, complex64_elt) kind
-##V>=4.2##           | Char : (char, int8_unsigned_elt) kind
+#if OCAML_VERSION >= (4,2)
+  = Float32 : (float, float32_elt) kind
+  | Float64 : (float, float64_elt) kind
+  | Int8_signed : (int, int8_signed_elt) kind
+  | Int8_unsigned : (int, int8_unsigned_elt) kind
+  | Int16_signed : (int, int16_signed_elt) kind
+  | Int16_unsigned : (int, int16_unsigned_elt) kind
+  | Int32 : (int32, int32_elt) kind
+  | Int64 : (int64, int64_elt) kind
+  | Int : (int, int_elt) kind
+  | Nativeint : (nativeint, nativeint_elt) kind
+  | Complex32 : (Complex.t, complex32_elt) kind
+  | Complex64 : (Complex.t, complex64_elt) kind
+  | Char : (char, int8_unsigned_elt) kind
+#endif
 
 type c_layout = Bigarray.c_layout
-##V>=4.2## = C_layout_typ
+#if OCAML_VERSION >= (4,2)
+ = C_layout_typ
+#endif
 type fortran_layout = Bigarray.fortran_layout
-##V>=4.2## = Fortran_layout_typ
+#if OCAML_VERSION >= (4,2)
+ = Fortran_layout_typ
+#endif
 
 type 'a layout = 'a Bigarray.layout
-##V>=4.2##           = C_layout : c_layout layout
-##V>=4.2##           | Fortran_layout : fortran_layout layout
+#if OCAML_VERSION >= (4,2)
+           = C_layout : c_layout layout
+           | Fortran_layout : fortran_layout layout
+#endif
 
 let float32 = Bigarray.float32
 let float64 = Bigarray.float64
@@ -95,15 +127,17 @@ let char = Bigarray.char
 let c_layout = Bigarray.c_layout
 let fortran_layout = Bigarray.fortran_layout
 
-##V<4.2##let ofs_of_layout (layout : _ Bigarray.layout) =
-##V<4.2##  match (Obj.magic layout : int) with
-##V<4.2##  | 0 -> 0 (* keep these magic constants in sync with bigarray.ml *)
-##V<4.2##  | 0x100 -> 1 (* and transitively with caml_ba_layout in bigarray.h  *)
-##V<4.2##  | _ -> failwith "Unknown layout"
-
-##V>=4.2##let ofs_of_layout : type a . a Bigarray.layout -> int = function
-##V>=4.2##  | Bigarray.C_layout -> 0
-##V>=4.2##  | Bigarray.Fortran_layout -> 1
+#if OCAML_VERSION < (4, 2)
+let ofs_of_layout (layout : _ Bigarray.layout) =
+  match (Obj.magic layout : int) with
+  | 0 -> 0 (* keep these magic constants in sync with bigarray.ml *)
+  | 0x100 -> 1 (* and transitively with caml_ba_layout in bigarray.h  *)
+  | _ -> failwith "Unknown layout"
+#else
+let ofs_of_layout : type a . a Bigarray.layout -> int = function
+  | Bigarray.C_layout -> 0
+  | Bigarray.Fortran_layout -> 1
+#endif
 
 module Genarray =
 struct

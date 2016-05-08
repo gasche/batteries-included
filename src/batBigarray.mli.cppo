@@ -84,44 +84,71 @@
    because of the somewhat strange interpretation of strengthening in (module type of),
    we need to explicitly equate each type with its constructor *)
 type float32_elt = Bigarray.float32_elt
-##V>=4.2## = Float32_elt
+#if OCAML_VERSION >= (4,2)
+  = Float32_elt
+#endif
 type float64_elt = Bigarray.float64_elt
-##V>=4.2## = Float64_elt
+#if OCAML_VERSION >= (4,2)
+  = Float64_elt
+#endif
 type complex32_elt = Bigarray.complex32_elt
-##V>=4.2## = Complex32_elt
+#if OCAML_VERSION >= (4,2)
+ = Complex32_elt
+#endif
 type complex64_elt = Bigarray.complex64_elt
-##V>=4.2## = Complex64_elt
+#if OCAML_VERSION >= (4,2)
+ = Complex64_elt
+#endif
 type int8_signed_elt = Bigarray.int8_signed_elt
-##V>=4.2## = Int8_signed_elt
+#if OCAML_VERSION >= (4,2)
+ = Int8_signed_elt
+#endif
 type int8_unsigned_elt = Bigarray.int8_unsigned_elt
-##V>=4.2## = Int8_unsigned_elt
+#if OCAML_VERSION >= (4,2)
+ = Int8_unsigned_elt
+#endif
 type int16_signed_elt = Bigarray.int16_signed_elt
-##V>=4.2## = Int16_signed_elt
+#if OCAML_VERSION >= (4,2)
+ = Int16_signed_elt
+#endif
 type int16_unsigned_elt = Bigarray.int16_unsigned_elt
-##V>=4.2## = Int16_unsigned_elt
+#if OCAML_VERSION >= (4,2)
+ = Int16_unsigned_elt
+#endif
 type int_elt = Bigarray.int_elt
-##V>=4.2## = Int_elt
+#if OCAML_VERSION >= (4,2)
+ = Int_elt
+#endif
 type int32_elt = Bigarray.int32_elt
-##V>=4.2## = Int32_elt
+#if OCAML_VERSION >= (4,2)
+ = Int32_elt
+#endif
 type int64_elt = Bigarray.int64_elt
-##V>=4.2## = Int64_elt
+#if OCAML_VERSION >= (4,2)
+ = Int64_elt
+#endif
 type nativeint_elt = Bigarray.nativeint_elt
-##V>=4.2## = Nativeint_elt
+#if OCAML_VERSION >= (4,2)
+ = Nativeint_elt
+#endif
 
 type ('a, 'b) kind = ('a,'b) Bigarray.kind
-##V>=4.2##           = Float32 : (float, float32_elt) kind
-##V>=4.2##           | Float64 : (float, float64_elt) kind
-##V>=4.2##           | Int8_signed : (int, int8_signed_elt) kind
-##V>=4.2##           | Int8_unsigned : (int, int8_unsigned_elt) kind
-##V>=4.2##           | Int16_signed : (int, int16_signed_elt) kind
-##V>=4.2##           | Int16_unsigned : (int, int16_unsigned_elt) kind
-##V>=4.2##           | Int32 : (int32, int32_elt) kind
-##V>=4.2##           | Int64 : (int64, int64_elt) kind
-##V>=4.2##           | Int : (int, int_elt) kind
-##V>=4.2##           | Nativeint : (nativeint, nativeint_elt) kind
-##V>=4.2##           | Complex32 : (Complex.t, complex32_elt) kind
-##V>=4.2##           | Complex64 : (Complex.t, complex64_elt) kind
-##V>=4.2##           | Char : (char, int8_unsigned_elt) kind
+#if OCAML_VERSION >= (4,2)
+  = Float32 : (float, float32_elt) kind
+  | Float64 : (float, float64_elt) kind
+  | Int8_signed : (int, int8_signed_elt) kind
+  | Int8_unsigned : (int, int8_unsigned_elt) kind
+  | Int16_signed : (int, int16_signed_elt) kind
+  | Int16_unsigned : (int, int16_unsigned_elt) kind
+  | Int32 : (int32, int32_elt) kind
+  | Int64 : (int64, int64_elt) kind
+  | Int : (int, int_elt) kind
+  | Nativeint : (nativeint, nativeint_elt) kind
+  | Complex32 : (Complex.t, complex32_elt) kind
+  | Complex64 : (Complex.t, complex64_elt) kind
+  | Char : (char, int8_unsigned_elt) kind
+#endif
+#ifdef OCAML_VERSION < (4, 2)
 (** To each element kind is associated an OCaml type, which is
     the type of OCaml values that can be stored in the big array
     or read back from it.  This type is not necessarily the same
@@ -131,34 +158,45 @@ type ('a, 'b) kind = ('a,'b) Bigarray.kind
     its elements from OCaml uses the OCaml type [float], which is
     64-bit double precision floats.
 
-##V<4.2##    The abstract type [('a, 'b) kind] captures this association
-##V<4.2##    of an OCaml type ['a] for values read or written in the big array,
-##V<4.2##    and of an element kind ['b] which represents the actual contents
-##V<4.2##    of the big array.  The following predefined values of type
-##V<4.2##    [kind] list all possible associations of OCaml types with
-##V<4.2##    element kinds:
-##V>=4.2##   The GADT type [('a, 'b) kind] captures this association
-##V>=4.2##   of an OCaml type ['a] for values read or written in the big array,
-##V>=4.2##   and of an element kind ['b] which represents the actual contents
-##V>=4.2##   of the big array. Its constructors list all possible associations
-##V>=4.2##   of OCaml types with element kinds, and are re-exported below for
-##V>=4.2##   backward-compatibility reasons.
-##V>=4.2##
-##V>=4.2##   Using a generalized algebraic datatype (GADT) here allows to write
-##V>=4.2##   well-typed polymorphic functions whose return type depend on the
-##V>=4.2##   argument type, such as:
-##V>=4.2##{[
-##V>=4.2##  let zero : type a b. (a, b) kind -> a = function
-##V>=4.2##    | Float32 -> 0.0 | Complex32 -> Complex.zero
-##V>=4.2##    | Float64 -> 0.0 | Complex64 -> Complex.zero
-##V>=4.2##    | Int8_signed -> 0 | Int8_unsigned -> 0
-##V>=4.2##    | Int16_signed -> 0 | Int16_unsigned -> 0
-##V>=4.2##    | Int32 -> 0l | Int64 -> 0L
-##V>=4.2##    | Int -> 0 | Nativeint -> 0n
-##V>=4.2##    | Char -> '\000'
-##V>=4.2##]}
+    The abstract type [('a, 'b) kind] captures this association
+    of an OCaml type ['a] for values read or written in the big array,
+    and of an element kind ['b] which represents the actual contents
+    of the big array.  The following predefined values of type
+    [kind] list all possible associations of OCaml types with
+    element kinds:
 *)
+#else
+(** To each element kind is associated an OCaml type, which is
+    the type of OCaml values that can be stored in the big array
+    or read back from it.  This type is not necessarily the same
+    as the type of the array elements proper: for instance,
+    a big array whose elements are of kind [float32_elt] contains
+    32-bit single precision floats, but reading or writing one of
+    its elements from OCaml uses the OCaml type [float], which is
+    64-bit double precision floats.
 
+   The GADT type [('a, 'b) kind] captures this association
+   of an OCaml type ['a] for values read or written in the big array,
+   and of an element kind ['b] which represents the actual contents
+   of the big array. Its constructors list all possible associations
+   of OCaml types with element kinds, and are re-exported below for
+   backward-compatibility reasons.
+
+   Using a generalized algebraic datatype (GADT) here allows to write
+   well-typed polymorphic functions whose return type depend on the
+   argument type, such as:
+{[
+  let zero : type a b. (a, b) kind -> a = function
+    | Float32 -> 0.0 | Complex32 -> Complex.zero
+    | Float64 -> 0.0 | Complex64 -> Complex.zero
+    | Int8_signed -> 0 | Int8_unsigned -> 0
+    | Int16_signed -> 0 | Int16_unsigned -> 0
+    | Int32 -> 0l | Int64 -> 0L
+    | Int -> 0 | Nativeint -> 0n
+    | Char -> '\000'
+]}
+*)
+#endif
 
 val float32 : (float, float32_elt) kind
 (** See {!Bigarray.char}. *)
@@ -215,11 +253,15 @@ val char : (char, int8_unsigned_elt) kind
 (** {6 Array layouts} *)
 
 type c_layout = Bigarray.c_layout
-##V>=4.2## = C_layout_typ
+#if OCAML_VERSION >= (4, 2)
+  = C_layout_typ
+#endif
 (** See {!Bigarray.fortran_layout}.*)
 
 type fortran_layout = Bigarray.fortran_layout
-##V>=4.2## = Fortran_layout_typ
+#if OCAML_VERSION >= (4,2)
+ = Fortran_layout_typ
+#endif
 (** To facilitate interoperability with existing C and Fortran code,
     this library supports two different memory layouts for big arrays,
     one compatible with the C conventions,
@@ -243,8 +285,10 @@ type fortran_layout = Bigarray.fortran_layout
     abstract types {!Bigarray.c_layout} and [fortran_layout] respectively. *)
 
 type 'a layout = 'a Bigarray.layout
-##V>=4.2##           = C_layout : c_layout layout
-##V>=4.2##           | Fortran_layout : fortran_layout layout
+#ifdef OCAML_VERSION >= (4, 2)
+  = C_layout : c_layout layout
+  | Fortran_layout : fortran_layout layout
+#endif
 (** The type ['a layout] represents one of the two supported
     memory layouts: C-style if ['a] is {!Bigarray.c_layout}, Fortran-style
     if ['a] is {!Bigarray.fortran_layout}. *)
@@ -556,8 +600,11 @@ module Array1 : sig
       determine the array element kind and the array layout
       as described for [Genarray.create]. *)
 
-##V<4.1##  val dim: ('a, 'b, 'c) t -> int
-##V>=4.1##  external dim: ('a, 'b, 'c) t -> int = "%caml_ba_dim_1"
+#if OCAML_VERSION < (4, 1)
+  val dim: ('a, 'b, 'c) t -> int
+#else
+  external dim: ('a, 'b, 'c) t -> int = "%caml_ba_dim_1"
+#endif
   (** Return the size (dimension) of the given one-dimensional
       big array. *)
 
@@ -684,12 +731,18 @@ sig
       determine the array element kind and the array layout
       as described for {!Bigarray.Genarray.create}. *)
 
-##V<4.1##  val dim1: ('a, 'b, 'c) t -> int
-##V>=4.1##  external dim1: ('a, 'b, 'c) t -> int = "%caml_ba_dim_1"
+#if OCAML_VERSION < (4, 1)
+  val dim1: ('a, 'b, 'c) t -> int
+#else
+  external dim1: ('a, 'b, 'c) t -> int = "%caml_ba_dim_1"
+#endif
   (** Return the first dimension of the given two-dimensional big array. *)
 
-##V<4.1##  val dim2: ('a, 'b, 'c) t -> int
-##V>=4.1##  external dim2: ('a, 'b, 'c) t -> int = "%caml_ba_dim_2"
+#if OCAML_VERSION < (4, 1)
+  val dim2: ('a, 'b, 'c) t -> int
+#else
+  external dim2: ('a, 'b, 'c) t -> int = "%caml_ba_dim_2"
+#endif
   (** Return the second dimension of the given two-dimensional big array. *)
 
   external kind: ('a, 'b, 'c) t -> ('a, 'b) kind = "caml_ba_kind"
@@ -825,16 +878,25 @@ sig
       [kind] and [layout] determine the array element kind and
       the array layout as described for {!Bigarray.Genarray.create}. *)
 
-##V<4.1##  val dim1: ('a, 'b, 'c) t -> int
-##V>=4.1##  external dim1: ('a, 'b, 'c) t -> int = "%caml_ba_dim_1"
+#if OCAML_VERSION < (4, 1)
+  val dim1: ('a, 'b, 'c) t -> int
+#else
+  external dim1: ('a, 'b, 'c) t -> int = "%caml_ba_dim_1"
+#endif
   (** Return the first dimension of the given three-dimensional big array. *)
 
-##V<4.1##  val dim2: ('a, 'b, 'c) t -> int
-##V>=4.1##  external dim2: ('a, 'b, 'c) t -> int = "%caml_ba_dim_2"
+#if OCAML_VERSION < (4, 1)
+  val dim2: ('a, 'b, 'c) t -> int
+#else
+  external dim2: ('a, 'b, 'c) t -> int = "%caml_ba_dim_2"
+#endif
   (** Return the second dimension of the given three-dimensional big array. *)
 
-##V<4.1##  val dim3: ('a, 'b, 'c) t -> int
-##V>=4.1##  external dim3: ('a, 'b, 'c) t -> int = "%caml_ba_dim_3"
+#if OCAML_VERSION < (4, 1)
+  val dim3: ('a, 'b, 'c) t -> int
+#else
+  external dim3: ('a, 'b, 'c) t -> int = "%caml_ba_dim_3"
+#endif
   (** Return the third dimension of the given three-dimensional big array. *)
 
   external kind: ('a, 'b, 'c) t -> ('a, 'b) kind = "caml_ba_kind"
