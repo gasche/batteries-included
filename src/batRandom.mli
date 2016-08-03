@@ -115,6 +115,24 @@ val choice : 'a BatEnum.t -> 'a
     This function only works on finite enumerations with
     less than 2{^30} elements.*)
 
+val weighted_choice : ('a * float) BatEnum.t -> 'a
+(** [weighted_choice e] takes pairs of an element and its weight,
+    and returns a randomly-chosen element according to its weight:
+    the probability of each element to be chosen is equal to
+    its weight divided by the sum of all weights.
+
+    For example, [weighted_choice (List.enum [(true, 2.); (false, 4.)])]
+    will return [false] twice more often than [true], as it has double weight.
+
+    This function only works on finite enumerations with
+    less than 2{^30} elements
+
+    @raise Invalid_argument if one of the weights is negative
+    @raise Not_found if passed an empty enumeration
+
+    @since NEXT_RELEASE
+*)
+
 val multi_choice : int -> 'a BatEnum.t -> 'a BatEnum.t
 (** [multi_choice n e] returns an enumeration of [n]
     randomly-chosen elements of [e]. *)

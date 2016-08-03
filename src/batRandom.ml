@@ -73,6 +73,37 @@ let enum_char () = BatEnum.from char
 
 let choice e = BatEnum.drop (int (BatEnum.count e)) e; BatEnum.get_exn e
 
+let weighted_choice e =
+  let list, total_weight =
+    BatEnum.fold (fun (acc, total) ((_, w) as elem) ->
+        if w < 0. then
+          Printf.kprintf invalid_arg
+            "weighted_choice does not accept negative weights (here %f)"
+            w;
+        elem :: acc, total +. w) ([], 0.) e in
+
+  if list = [] || total_weight <= 0. then raise Not_found;
+
+  let pick = float total_weight in
+  let rec find level = function
+    | [] -> assert false
+    | (elem, w) :: rest ->
+      let next_level = level +. w in
+      if pick < next_level then elem
+      else find next_level rest
+  in find 0. list
+(*$T weighted_choice
+  try ignore (weighted_choice (BatList.enum [])); false with Not_found -> true
+  weighted_choice (BatList.enum [true, 1.]) = true
+  weighted_choice (BatList.enum [true, 1.; false, 0.]) = true
+  let choice () = weighted_choice (BatList.enum [0, 1.; 1, 10.; 2, 1.]) in \
+  Array.init 100_000 (fun _ -> choice ()) \
+  |> BatSet.of_array \
+  |> BatSet.elements \
+  |> (=) [0; 1; 2]
+*)
+
+
 (* Reservoir sampling algorithm (see for instance
    http://en.wikipedia.org/wiki/Reservoir_sampling)
 
